@@ -207,7 +207,7 @@ revoke all on function public.confirm_parent_payment_submission(uuid,boolean,tex
 grant execute on function public.confirm_parent_payment_submission(uuid,boolean,text) to authenticated;
 
 create or replace function public.import_school_fee_rows(p_rows jsonb)
-returns jsonb language plpgsql security definer set search_path = pg_catalog, public, private
+returns jsonb language plpgsql security invoker set search_path = pg_catalog, public, private
 as $$
 declare
  v_profile public.profiles%rowtype; v_row jsonb; v_admission text; v_name text; v_class text; v_section text; v_description text;
@@ -244,3 +244,111 @@ end;
 $$;
 revoke all on function public.import_school_fee_rows(jsonb) from public, anon;
 grant execute on function public.import_school_fee_rows(jsonb) to authenticated;
+
+
+-- Approved discounts/refunds are first-class financial records, with approval and audit history.
+create table if not exists public.fee_adjustments (
+ id uuid primary key default gen_random_uuid(),
+ school_id uuid not null references public.schools(id),
+ invoice_id uuid not null references public.fee_invoices(id),
+ kind text not null check (kind in ('discount','refund')),
+ amount numeric(12,2) not null check (amount > 0),
+ reason text not null,
+ status text not null default 'pending' check (status in ('pending','approved','rejected')),
+ requested_by uuid not null references public.profiles(id),
+ reviewed_by uuid references public.profiles(id),
+ created_at timestamptz not null default now(),
+ reviewed_at timestamptz
+);
+alter table public.fee_adjustments enable row level security;
+grant select, insert, update on public.fee_adjustments to authenticated;
+drop policy if exists fee_adjustments_read_school on public.fee_adjustments;
+create policy fee_adjustments_read_school on public.fee_adjustments for select to authenticated
+using (
+ school_id=(select p.school_id from public.profiles p where p.id=(select auth.uid()) and p.active=true)
+ and ((select p.role from public.profiles p where p.id=(select auth.uid()) and p.active=true)=any(array['developer','owner','manager','principal','fees_counter'])
+ or (status='approved' and exists(select 1 from public.fee_invoices i join public.parent_student ps on ps.student_id=i.student_id where i.id=fee_adjustments.invoice_id and ps.parent_id=(select auth.uid()))))
+);
+drop policy if exists fee_adjustments_create_school on public.fee_adjustments;
+create policy fee_adjustments_create_school on public.fee_adjustments for insert to authenticated
+with check (
+ school_id=(select p.school_id from public.profiles p where p.id=(select auth.uid()) and p.active=true)
+ and requested_by=(select auth.uid()) and status='pending' and reviewed_by is null and reviewed_at is null
+ and (select p.role from public.profiles p where p.id=(select auth.uid()) and p.active=true)=any(array['developer','owner','manager','fees_counter'])
+ and exists(select 1 from public.fee_invoices i where i.id=fee_adjustments.invoice_id and i.school_id=fee_adjustments.school_id)
+);
+drop policy if exists fee_adjustments_approve_school on public.fee_adjustments;
+create policy fee_adjustments_approve_school on public.fee_adjustments for update to authenticated
+using (school_id=(select p.school_id from public.profiles p where p.id=(select auth.uid()) and p.active=true)
+and (select p.role from public.profiles p where p.id=(select auth.uid()) and p.active=true)=any(array['developer','owner','manager']))
+with check (school_id=(select p.school_id from public.profiles p where p.id=(select auth.uid()) and p.active=true)
+and (select p.role from public.profiles p where p.id=(select auth.uid()) and p.active=true)=any(array['developer','owner','manager'])
+and reviewed_by=(select auth.uid()) and reviewed_at is not null);
+
+create index if not exists cash_closings_school_date_idx on public.cash_closings(school_id,business_date desc);
+create index if not exists parent_payment_submissions_school_status_idx on public.parent_payment_submissions(school_id,status,created_at desc);
+create index if not exists fee_adjustments_school_invoice_idx on public.fee_adjustments(school_id,invoice_id,status);
+create index if not exists audit_logs_school_created_idx on public.audit_logs(school_id,created_at desc);
+
+create or replace function private.log_school_fee_change()
+returns trigger language plpgsql security definer
+set search_path = pg_catalog, public, private
+as $$
+declare v_school uuid; v_entity text; v_id text; v_details jsonb; v_action text;
+begin
+  v_entity := case tg_table_name when 'fee_invoices' then 'fee_invoice' when 'fee_payments' then 'fee_payment' else 'fee_adjustment' end;
+  if tg_op='DELETE' then
+    v_school := old.school_id; v_id := old.id::text;
+    v_details := jsonb_build_object('before',to_jsonb(old)); v_action := 'delete';
+    insert into public.audit_logs(actor_id,school_id,action,entity_type,entity_id,details,created_at)
+    values(auth.uid(),v_school,v_action,v_entity,v_id,v_details,now());
+    return old;
+  elsif tg_op='UPDATE' then
+    v_school := new.school_id; v_id := new.id::text;
+    v_details := jsonb_build_object('before',to_jsonb(old),'after',to_jsonb(new)); v_action := 'update';
+  else
+    v_school := new.school_id; v_id := new.id::text;
+    v_details := jsonb_build_object('after',to_jsonb(new)); v_action := 'create';
+  end if;
+  insert into public.audit_logs(actor_id,school_id,action,entity_type,entity_id,details,created_at)
+  values(auth.uid(),v_school,v_action,v_entity,v_id,v_details,now());
+  return new;
+end;
+$$;
+drop trigger if exists fee_adjustments_audit_change on public.fee_adjustments;
+create trigger fee_adjustments_audit_change after insert or update or delete on public.fee_adjustments
+for each row execute function private.log_school_fee_change();
+
+create or replace function public.confirm_parent_payment_submission(p_submission_id uuid, p_approve boolean, p_note text default '')
+returns jsonb language plpgsql security definer set search_path = pg_catalog, public, private
+as $$
+declare v_profile public.profiles%rowtype; v_sub public.parent_payment_submissions%rowtype; v_invoice public.fee_invoices%rowtype;
+ v_paid numeric(12,2); v_discount numeric(12,2); v_refunds numeric(12,2); v_balance numeric(12,2); v_receipt text;
+begin
+ select * into v_profile from public.profiles where id=auth.uid() and active=true;
+ if not found or v_profile.role not in ('developer','owner','manager','fees_counter') then raise exception 'Not authorized to review parent payment confirmations'; end if;
+ select * into v_sub from public.parent_payment_submissions where id=p_submission_id and school_id=v_profile.school_id for update;
+ if not found then raise exception 'Payment confirmation not found in your school'; end if;
+ if v_sub.status<>'pending' then raise exception 'This confirmation has already been reviewed'; end if;
+ if p_approve then
+  select * into v_invoice from public.fee_invoices where id=v_sub.invoice_id and school_id=v_profile.school_id for update;
+  if not found or v_invoice.student_id<>v_sub.student_id then raise exception 'Invoice/student mismatch'; end if;
+  select coalesce(sum(amount),0) into v_paid from public.fee_payments where invoice_id=v_invoice.id;
+  select coalesce(sum(amount),0) into v_discount from public.fee_adjustments where invoice_id=v_invoice.id and kind='discount' and status='approved';
+  select coalesce(sum(amount),0) into v_refunds from public.fee_adjustments where invoice_id=v_invoice.id and kind='refund' and status='approved';
+  v_balance:=greatest(0,v_invoice.amount-v_discount-v_paid+v_refunds);
+  if v_sub.amount<=0 or v_sub.amount>v_balance then raise exception 'Submitted amount exceeds the current balance'; end if;
+  v_receipt:='SS-'||upper(substr(replace(gen_random_uuid()::text,'-',''),1,10));
+  insert into public.fee_payments(school_id,invoice_id,amount,payment_method,payment_reference,received_by,paid_at,receipt_number)
+  values(v_profile.school_id,v_invoice.id,v_sub.amount,v_sub.payment_method,v_sub.payment_reference,v_profile.id,now(),v_receipt);
+  update public.fee_invoices set status=case when v_paid+v_sub.amount>=v_invoice.amount-v_discount+v_refunds then 'paid' else 'partial' end where id=v_invoice.id;
+  update public.parent_payment_submissions set status='verified',reviewed_by=v_profile.id,reviewed_at=now(),review_note=coalesce(p_note,'') where id=v_sub.id;
+  return jsonb_build_object('status','verified','receipt_number',v_receipt);
+ else
+  update public.parent_payment_submissions set status='rejected',reviewed_by=v_profile.id,reviewed_at=now(),review_note=coalesce(p_note,'') where id=v_sub.id;
+  return jsonb_build_object('status','rejected');
+ end if;
+end;
+$$;
+revoke all on function public.confirm_parent_payment_submission(uuid,boolean,text) from public, anon;
+grant execute on function public.confirm_parent_payment_submission(uuid,boolean,text) to authenticated;
