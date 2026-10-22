@@ -57,3 +57,25 @@ create policy students_manage_same_school_office on public.students for all to a
  school_id=(select p.school_id from public.profiles p where p.id=(select auth.uid()) and p.active=true)
  and (select p.role from public.profiles p where p.id=(select auth.uid()) and p.active=true) in ('developer','owner','manager','principal','class_teacher','fees_counter')
 );
+
+drop policy if exists classes_manage_leadership on public.classes;
+drop policy if exists classes_read_staff on public.classes;
+create policy classes_read_same_school_staff on public.classes for select to authenticated using (
+ school_id=(select p.school_id from public.profiles p where p.id=(select auth.uid()) and p.active=true)
+ and (select p.role from public.profiles p where p.id=(select auth.uid()) and p.active=true) in ('developer','owner','manager','principal','vice_principal','control_room','class_teacher','subject_teacher','fees_counter')
+);
+create policy classes_manage_same_school_leadership on public.classes for all to authenticated using (
+ school_id=(select p.school_id from public.profiles p where p.id=(select auth.uid()) and p.active=true)
+ and (select p.role from public.profiles p where p.id=(select auth.uid()) and p.active=true) in ('developer','owner','manager','principal','vice_principal')
+) with check (
+ school_id=(select p.school_id from public.profiles p where p.id=(select auth.uid()) and p.active=true)
+ and (select p.role from public.profiles p where p.id=(select auth.uid()) and p.active=true) in ('developer','owner','manager','principal','vice_principal')
+);
+create policy fees_read_student_parent_same_school on public.fee_invoices for select to authenticated using (
+ school_id=(select p.school_id from public.profiles p where p.id=(select auth.uid()) and p.active=true)
+ and (
+  (select p.role from public.profiles p where p.id=(select auth.uid()) and p.active=true) in ('developer','owner','manager','principal','fees_counter')
+  or exists(select 1 from public.students s where s.id=fee_invoices.student_id and s.school_id=fee_invoices.school_id and s.profile_id=(select auth.uid()))
+  or exists(select 1 from public.parent_student ps where ps.student_id=fee_invoices.student_id and ps.parent_id=(select auth.uid()))
+ )
+);
