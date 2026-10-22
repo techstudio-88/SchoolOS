@@ -171,6 +171,43 @@ header{background:#ffffffd9;border-bottom:1px solid var(--ln);backdrop-filter:bl
 @keyframes voiceOrbRing{to{transform:rotate(360deg)}}@keyframes voiceLive{50%{opacity:.35;transform:scale(.72)}}
 @media(max-width:600px){#mn{padding:16px 14px 100px}#mn .k{gap:10px}#mn .k .cd{min-height:130px;padding:16px}#mn .hero{min-height:110px;gap:13px}.voiceOrbWrap{height:150px;width:150px}.voiceOrb{width:96px;height:96px}}
 @media(prefers-reduced-motion:reduce){.voiceOrb,.voiceOrb:before,.voiceOrb:after,.voiceOrb i,.voiceLive{animation:none!important}}
+
+/* Premium workspace theme: dashboards start light; the sign-in and launcher keep their original theme. */
+.sh{--bg:#f4f7fc;--s1:#ffffff;--s2:#eef2f9;--ln:#e0e7f1;--t:#17243a;--m:#64748b;--a:#4f46e5;--b:#0f9f9a;--on:#ffffff;background:radial-gradient(ellipse at 8% 0%,#e6eaff 0,transparent 42%),radial-gradient(ellipse at 95% 100%,#dcf8f2 0,transparent 38%),var(--bg);color:var(--t);color-scheme:light;transition:background .25s,color .25s}
+.sh.theme-dark{--bg:#0b1220;--s1:#121c2d;--s2:#1b2940;--ln:#2a3a53;--t:#edf3ff;--m:#9aaac2;--a:#818cf8;--b:#2dd4bf;--on:#ffffff;background:radial-gradient(ellipse at 8% 0%,#252451 0,transparent 42%),radial-gradient(ellipse at 95% 100%,#103b3a 0,transparent 38%),var(--bg);color-scheme:dark}
+.sh aside{background:color-mix(in srgb,var(--s1) 94%,transparent);border-right-color:var(--ln);box-shadow:8px 0 32px #17243a0a}
+.sh .br{background:linear-gradient(125deg,#4338ca,#0f9f9a);box-shadow:0 8px 24px #4338ca20}
+.sh header{background:color-mix(in srgb,var(--s1) 92%,transparent);color:var(--t);border-bottom:1px solid var(--ln);box-shadow:0 4px 20px #17243a0a;backdrop-filter:blur(16px)}
+.sh .ib{background:var(--s2);color:var(--t);border:1px solid var(--ln);transition:transform .18s,border-color .18s,background .18s}
+.sh .ib:hover{transform:translateY(-1px);border-color:var(--a)}
+.sh .hero{background:linear-gradient(120deg,#4338ca,#4f46e5 48%,#0f9f9a);border:1px solid #ffffff2b;box-shadow:0 12px 28px #4338ca20, inset 0 1px 0 #ffffff30}
+.sh .cd,.sh .fee-person{background:var(--s1);border:1px solid var(--ln);border-radius:18px;padding:18px;box-shadow:0 2px 4px #17243a04,0 10px 28px #17243a08,inset 0 1px 0 #ffffff8a;transition:transform .2s,box-shadow .2s,border-color .2s}
+.sh .cd:hover,.sh .fee-person:hover{border-color:color-mix(in srgb,var(--a) 32%,var(--ln));box-shadow:0 8px 24px #17243a0c,0 16px 36px #17243a08}
+.sh .k .cd{border-top:3px solid var(--a);padding-top:17px}
+.sh .k .cd:nth-child(2){border-top-color:#0f9f9a}.sh .k .cd:nth-child(3){border-top-color:#f59e0b}.sh .k .cd:nth-child(4){border-top-color:#8b5cf6}
+.sh .k h2,.sh .mt h2{letter-spacing:-.045em;color:var(--t);font-size:clamp(23px,3vw,30px)}
+.sh h3{letter-spacing:-.015em;color:var(--t)}
+.sh .q button,.sh .en,.sh .lane,.sh .tk,.sh .hwc{background:var(--s1);border:1px solid var(--ln);box-shadow:0 3px 12px #17243a06}
+.sh .q button{border-radius:13px;padding:14px 12px;color:var(--t)}
+.sh .q button:hover{background:var(--s2);border-color:color-mix(in srgb,var(--a) 40%,var(--ln))}
+.sh .pb{background:linear-gradient(120deg,#4f46e5,#0f9f9a);box-shadow:0 5px 14px #4f46e52a;border-radius:12px}
+.sh .pb:hover{filter:saturate(1.08) brightness(1.03)}
+.sh .sb,.sh .ch{background:var(--s2);border:1px solid var(--ln);color:var(--t)}
+.sh .sb.on{background:linear-gradient(120deg,#4f46e5,#0f9f9a);color:#fff}
+.sh .nv>button,.sh .navgroup button{color:var(--m)}
+.sh .nv button.on{background:linear-gradient(90deg,color-mix(in srgb,var(--a) 13%,transparent),transparent);color:var(--a);box-shadow:inset 3px 0 0 var(--a)}
+.sh .nv button:hover{background:var(--s2);color:var(--a)}
+.sh .bn{background:color-mix(in srgb,var(--s1) 90%,transparent);border-top-color:var(--ln)}
+.sh .bn button.on{color:var(--a)}
+.sh input,.sh select,.sh textarea{background:var(--bg);border-color:var(--ln);color:var(--t)}
+.sh .pr{background:var(--s2)}.sh .bars u,.sh .pod u{background:linear-gradient(180deg,#0f9f9a,#4f46e5)}
+.sh .stt{background:var(--s1);box-shadow:0 4px 14px #17243a08}
+.sh .m>div{background:var(--s1);border:1px solid var(--ln);box-shadow:0 18px 60px #0b122044}
+.sh .cmp{background:var(--s1);border-color:var(--ln)}
+.sh .themeSwitch{font-size:18px;font-weight:700}
+@media(min-width:900px){.sh aside{box-shadow:none}.sh #mn{padding:22px 24px calc(env(safe-area-inset-bottom,0px) + 34px)}}
+@media(max-width:520px){.sh .cd,.sh .fee-person{padding:14px;border-radius:15px}.sh .hero{padding:16px}.sh .k{gap:9px}.sh .k h2{font-size:23px}}
+@media(prefers-reduced-motion:reduce){.sh .cd,.sh .fee-person,.sh .ib{transition:none}}
 </style></style></head><body><div id="app"></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script><script>
 const SB=window.supabase.createClient('https://noaeychhtmtybzpkmgut.supabase.co','sb_publishable_NAke8-N_BG5Sde-9AUL5XA_xrnUa739');
 const ROLE_KEYS=['developer','owner','manager','principal','vice_principal','control_room','class_teacher','subject_teacher','student','parent','fees_counter'];
@@ -244,7 +281,9 @@ function navMarkup(fs){
 }
 function shell(){let v=cv(),q=P[v],sel=role==5?`<div class=sr><select onchange="ctrl=this.value==''?null:+this.value;shell()"><option value="">Control Room (own)</option>${[6,7,8,9].map(k=>`<option value=${k} ${ctrl==k?'selected':''}>View: ${P[k].n}</option>`).join('')}</select></div>`:'';
 $.innerHTML=`<div class=sh style="${sty(q)}"><aside id=sb><div class=br><div class=ic>${ic(I[PI[v]],22)}</div><div><b>${q.n}</b><small>${tprof[v]?tprof[v].nm:(window.activeLogin&&window.activeLogin.role===v?(window.activeLogin.displayName||window.activeLogin.userId):'Signed in')}</small></div></div>${sel}<div class=sr><input placeholder="Search features" oninput="flt(this.value)"></div><div class=nv><button data-k=d class=on onclick="nav('d')">${ic(I.dash,17)}Dashboard</button>${navMarkup(q.f)}</div></aside><div class=ov id=ov onclick=tg()></div>
-<main><header><button class=ib id=mb onclick=tg()>${ic(I.menu,20)}</button><b id=ttl>Dashboard</b>${role>=1&&role<=3?`<button class=ib onclick="say(AUD[${role-1}])">${ic(I.vol,18)}</button>`:''}<button class=ib onclick=out()>${ic(I.out,18)}</button></header><div id=mn></div><nav class=bn><button data-h class=on onclick="nav('d')">${ic(I.dash,20)}Home</button><button onclick=tg()>${ic(I.menu,20)}Features</button><button onclick=alerts()>${ic(I.bell,20)}Alerts</button><button onclick=out()>${ic(I.out,20)}Exit</button></nav></main></div>`;view('d')}
+<main><header><button class=ib id=mb onclick=tg()>${ic(I.menu,20)}</button><b id=ttl>Dashboard</b><button class="ib themeSwitch" id="themeBtn" onclick="toggleTheme()" aria-label="Switch dashboard theme" title="Switch light/dark mode">☾</button>${role>=1&&role<=3?`<button class=ib onclick="say(AUD[${role-1}])">${ic(I.vol,18)}</button>`:''}<button class=ib onclick=out()>${ic(I.out,18)}</button></header><div id=mn></div><nav class=bn><button data-h class=on onclick="nav('d')">${ic(I.dash,20)}Home</button><button onclick=tg()>${ic(I.menu,20)}Features</button><button onclick=alerts()>${ic(I.bell,20)}Alerts</button><button onclick=out()>${ic(I.out,20)}Exit</button></nav></main></div>`;view('d')}
+function toggleTheme(){const sh=document.querySelector('.sh');if(!sh)return;const dark=sh.classList.toggle('theme-dark');try{localStorage.setItem('school-suite-dashboard-theme',dark?'dark':'light')}catch(e){}const b=document.getElementById('themeBtn');if(b){b.textContent=dark?'☀':'☾';b.title=dark?'Switch to light mode':'Switch to dark mode';b.setAttribute('aria-label',b.title)}}
+function applyDashboardTheme(){const sh=document.querySelector('.sh');if(!sh)return;let dark=false;try{dark=localStorage.getItem('school-suite-dashboard-theme')==='dark'}catch(e){}sh.classList.toggle('theme-dark',dark);const b=document.getElementById('themeBtn');if(b){b.textContent=dark?'☀':'☾';b.title=dark?'Switch to light mode':'Switch to dark mode';b.setAttribute('aria-label',b.title)}}
 function tg(){sb.classList.toggle('o');ov.classList.toggle('o')}
 function flt(t){t=t.toLowerCase();document.querySelectorAll('.nv button').forEach(b=>b.style.display=b.textContent.toLowerCase().includes(t)||b.dataset.k=='d'?'':'none');document.querySelectorAll('.navgroup').forEach(g=>{const any=[...g.querySelectorAll('button')].some(b=>b.style.display!=='none');g.style.display=any?'':'none';if(t&&any)g.open=true;if(!t)g.open=false})}
 function nav(k){sb.classList.remove('o');ov.classList.remove('o');view(k)}
@@ -328,7 +367,7 @@ tt(L){const DY=['Mon','Tue','Wed','Thu','Fri'],td=Math.min(4,Math.max(0,new Date
 w.querySelectorAll('.c0').forEach(c=>c.onclick=()=>sheet('Change subject',chips('ss',Object.keys(SC)),'Save',m=>{L[c.dataset.d][c.dataset.p]=pick(m,'ss');d();toast('Timetable updated')}))};d()}};
 const KP=[[['Servers',12,'','ctl'],['Uptime',99,'%','chart'],['Active users',1284,'','users'],['Errors',3,'','alert']],[['Fees collected',94,'%','money'],['New admissions',12,'','users'],['Staff present',96,'%','chart'],['Incidents',2,'','alert']],[['Buses on time',18,'','bus'],['Open tickets',2,'','file'],['Stock level',87,'%','chart'],['Staff present',95,'%','users']],[['Attendance',93,'%','users'],['Pending cases',1,'','alert'],['Leave requests',3,'','cal'],['Syllabus done',68,'%','book']],[['Substitutions',4,'','users'],['Detentions',6,'','alert'],['PTM slots',22,'','cal'],['Late arrivals',9,'','chart']],[['Cameras online',48,'','cam'],['Open alerts',2,'','alert'],['Visitors in',17,'','users'],['Gates secured',4,'','shield']],[['Attendance',94,'%','users'],['Homework due',3,'','book'],['Leave pending',1,'','cal'],['Class average',78,'%','chart']],[['Classes today',5,'','cal'],['To grade',38,'','file'],['Syllabus done',71,'%','book'],['Quizzes',2,'','chart']],[['Attendance',96,'%','users'],['Homework due',3,'','book'],['Average score',82,'%','chart'],['Stars earned',148,'','star']],[['Attendance',96,'%','users'],['Class rank',4,'','star'],['Homework due',3,'','book'],['Bus arrives in',8,' min','bus']],[['Today collected',0,'','money'],['Pending dues',0,'','money'],['Receipts issued',0,'','file'],['Reconciliation',100,'%','chart']]];
 const TL=[['08:00','Morning assembly'],['09:30','Staff briefing'],['11:30','Review meeting'],['14:00','Parent appointments'],['16:00','Day close and handover']];
-function view(k){let v=cv(),q=P[v],tp=tprof[v];clearInterval(TM);clearInterval(FEE_TIMER);FEE_TIMER=null;document.querySelectorAll('.fab').forEach(f=>f.remove());document.querySelectorAll('.nv button').forEach(b=>b.classList.toggle('on',b.dataset.k==k));document.querySelectorAll('.bn [data-h]').forEach(b=>b.classList.toggle('on',k=='d'));mn.scrollTop=0;
+function view(k){applyDashboardTheme();let v=cv(),q=P[v],tp=tprof[v];clearInterval(TM);clearInterval(FEE_TIMER);FEE_TIMER=null;document.querySelectorAll('.fab').forEach(f=>f.remove());document.querySelectorAll('.nv button').forEach(b=>b.classList.toggle('on',b.dataset.k==k));document.querySelectorAll('.bn [data-h]').forEach(b=>b.classList.toggle('on',k=='d'));mn.scrollTop=0;
 if(k!='d')return feat(k);ttl.textContent='Dashboard';
 mn.innerHTML=`<div class=hero><div class=ic>${ic(I[PI[v]],28)}</div><div><b>${tp?'Welcome, '+esc(tp.nm):'Welcome back'}</b><small>${q.n} workspace · ${new Date().toDateString()}</small></div></div>
 ${tp?`<div class=cd><span class=ch>${tp.ty}</span><span class=ch>${tp.cl} - ${tp.sc}</span><span class=ch>${esc(tp.sb)}</span><span class=ch>ID ${tp.id}</span>${v==6?'<div class=mu style="margin:8px 0 2px">Subject teachers of this class</div>'+['Mathematics','Science','English','Hindi','Social Studies','Computer','Physical Education','Art'].map(s=>`<span class=ch>${s}</span>`).join(''):''}</div>`:''}
