@@ -291,23 +291,24 @@ async function feeWorkspace(pageTitle){
  const money=n=>'₹'+Number(n||0).toLocaleString('en-IN',{maximumFractionDigits:2});
  if(!schoolId){mn.innerHTML='<div class=cd><h3>School link missing</h3><p class=mu>Ask the administrator to link your profile to a school before managing fees.</p></div>';return}
  mn.innerHTML='<div class=cd><h3>Fee Management</h3><p class=mu>Loading shared fee records…</p></div>';
- let invoices=[],students=[],classes=[];
+ let invoices=[],students=[],classes=[],parentSubs=[];
  async function load(){
   const z=await Promise.all([
    SB.from('fee_invoices').select('*,students(id,admission_number,full_name,class_id),fee_payments(id,amount,payment_method,payment_reference,paid_at,receipt_number,received_by,profiles!fee_payments_received_by_fkey(display_name,user_id))').eq('school_id',schoolId).order('created_at',{ascending:false}),
    SB.from('students').select('id,admission_number,full_name,class_id,status,school_id').eq('school_id',schoolId).order('full_name'),
-   SB.from('classes').select('id,name,section,school_id').eq('school_id',schoolId).order('name')
+   SB.from('classes').select('id,name,section,school_id').eq('school_id',schoolId).order('name'),
+   SB.from('parent_payment_submissions').select('id,student_id,invoice_id,amount,payment_method,payment_reference,created_at,students(full_name,admission_number),fee_invoices(invoice_number,description)').eq('school_id',schoolId).eq('status','pending').order('created_at',{ascending:false})
   ]);
   if(z[0].error||z[1].error){mn.innerHTML='<div class=cd><h3>Could not load records</h3><p class=mu>'+escF((z[0].error||z[1].error).message)+'</p><button class=pb id=feeRetry>Retry</button></div>';document.getElementById('feeRetry').onclick=load;return}
-  invoices=z[0].data||[];students=z[1].data||[];classes=z[2].data||[];render();
+  invoices=z[0].data||[];students=z[1].data||[];classes=z[2].data||[];parentSubs=z[3].error?[]:(z[3].data||[]);render();
  }
  const paid=i=>(i.fee_payments||[]).reduce((a,p)=>a+Number(p.amount||0),0);
  function render(){
   const billed=invoices.reduce((a,i)=>a+Number(i.amount||0),0),collected=invoices.reduce((a,i)=>a+paid(i),0),due=Math.max(0,billed-collected);
   mn.innerHTML='<div class=hero><div class=ic>₹</div><div><b>School Fee Management</b><small>Shared records · Updated '+escF(new Date().toLocaleString())+'</small></div></div>'+
   '<div class=fee-grid><div class=cd><small class=mu>Total billed</small><h2>'+money(billed)+'</h2></div><div class=cd><small class=mu>Collected</small><h2>'+money(collected)+'</h2></div><div class=cd><small class=mu>Outstanding</small><h2>'+money(due)+'</h2></div><div class=cd><small class=mu>Students / invoices</small><h2>'+students.length+' / '+invoices.length+'</h2></div></div>'+
-  '<div class=cd><h3>Actions</h3><div class=fee-toolbar><input id=feeSearch placeholder="Search student or admission number"><button class=pb id=feeImport>Import Excel / CSV</button><button class=pb id=feeExport>Export report</button></div><div class=fee-toolbar><button class=sb id=feeRefresh>Refresh records</button><button class=sb id=feeNew>Add student / invoice</button></div><p class=mu>Each payment stores amount, method, reference, date/time, receipt and staff account.</p></div>'+
-  '<div class=cd><h3>Student fee ledger</h3><div id=feeRows></div></div><div class=cd><h3>Recent payments</h3><div id=feeRecent></div></div>';
+  '<div class=cd><h3>Actions</h3><div class=fee-toolbar><input id=feeSearch placeholder="Search student or admission number"><button class=pb id=feeImport>Import Excel / CSV</button><button class=pb id=feeExport>Export report</button></div><div class=fee-toolbar><button class=sb id=feeRefresh>Refresh records</button><button class=sb id=feeNew>Add student / invoice</button><button class=sb id=feeClose>Cash / UPI closing</button></div><p class=mu>Each payment stores amount, method, reference, date/time, receipt and staff account.</p></div>'+
+  '<div class=cd><h3>Student fee ledger</h3><div id=feeRows></div></div><div class=cd><h3>Recent payments</h3><div id=feeRecent></div></div>'+(parentSubs.length?'<div class=cd><h3>Parent payment confirmations <span class=ch>'+parentSubs.length+' pending</span></h3><p class=mu>Verify the transaction before it enters the official fee ledger.</p>'+parentSubs.map(x=>'<div class=fee-person><b>'+escF(x.students&&x.students.full_name||'Student')+'</b><div class=fee-meta>'+escF(x.students&&x.students.admission_number||'')+' · '+escF(x.fee_invoices&&x.fee_invoices.invoice_number||'Invoice')+' · '+escF(x.payment_method)+' · '+escF(x.payment_reference)+'</div><div class=line><b>'+money(x.amount)+'</b><span class=fee-meta>'+escF(new Date(x.created_at).toLocaleString())+'</span></div><button class=pb data-review="'+x.id+'" data-approve="yes">Verify and record payment</button><button class=sb data-review="'+x.id+'" data-approve="no">Reject</button></div>').join('')+'</div>':'');
   function rows(needle){
    return invoices.filter(i=>[i.students&&i.students.full_name,i.students&&i.students.admission_number,i.invoice_number,i.description].some(x=>String(x||'').toLowerCase().includes(needle))).map(i=>{
     const p=paid(i),bal=Math.max(0,Number(i.amount||0)-p),s=i.students||{};
@@ -323,7 +324,25 @@ async function feeWorkspace(pageTitle){
   document.getElementById('feeImport').onclick=importSheet;
   document.getElementById('feeExport').onclick=exportReport;
   document.getElementById('feeNew').onclick=studentModal;
-  wirePay();
+  document.getElementById('feeClose').onclick=cashClose;
+  wirePay();wireParentSubs();
+ }
+ function wireParentSubs(){mn.querySelectorAll('[data-review]').forEach(b=>b.onclick=async()=>{const id=b.getAttribute('data-review'),approve=b.getAttribute('data-approve')==='yes';let note='';if(!approve){note=prompt('Reason for rejection (optional):')||''}b.disabled=true;const {data,error}=await SB.rpc('confirm_parent_payment_submission',{p_submission_id:id,p_approve:approve,p_note:note});if(error){b.disabled=false;toast('Review failed: '+error.message);return}toast(approve?'Verified and added to the same fee ledger.':'Payment confirmation rejected.');await load()})}
+ function cashClose(){
+  const today=new Date().toLocaleDateString('en-CA');
+  const payments=invoices.flatMap(i=>(i.fee_payments||[]).map(p=>({p,student:i.students||{},invoice:i})));
+  const day=payments.filter(x=>new Date(x.p.paid_at).toLocaleDateString('en-CA')===today);
+  const method=x=>String(x||'').toLowerCase().trim();
+  const expectedCash=day.filter(x=>method(x.p.payment_method)==='cash').reduce((a,x)=>a+Number(x.p.amount||0),0);
+  const expectedUpi=day.filter(x=>method(x.p.payment_method)==='upi').reduce((a,x)=>a+Number(x.p.amount||0),0);
+  const expectedBank=day.filter(x=>method(x.p.payment_method).includes('bank')).reduce((a,x)=>a+Number(x.p.amount||0),0);
+  const refs={};payments.forEach(x=>{const r=String(x.p.payment_reference||'').trim().toLowerCase();if(r)(refs[r]||(refs[r]=[])).push(x)});
+  const duplicates=Object.keys(refs).filter(r=>refs[r].length>1);
+  const m=modal('<h3>Daily collection reconciliation</h3><p class=mu>Expected collections for '+today+'. Compare these totals with cash in hand and your UPI/bank statement.</p><div class=fee-grid><div class=cd><small class=mu>Recorded cash</small><h3>₹'+expectedCash.toLocaleString('en-IN')+'</h3></div><div class=cd><small class=mu>Recorded UPI</small><h3>₹'+expectedUpi.toLocaleString('en-IN')+'</h3></div><div class=cd><small class=mu>Recorded bank</small><h3>₹'+expectedBank.toLocaleString('en-IN')+'</h3></div></div><label>Cash physically counted (₹)<input id=closeCash type=number min=0 step=.01 value="'+expectedCash+'"></label><label>UPI statement total (₹)<input id=closeUpi type=number min=0 step=.01 value="'+expectedUpi+'"></label><label>Bank statement total (₹)<input id=closeBank type=number min=0 step=.01 value="'+expectedBank+'"></label><label>Closing note<input id=closeNote placeholder="Cash difference, pending bank settlement, etc."></label><p class=mu>Difference preview: <b id=closeDiff>₹0</b> (counted cash minus recorded cash)</p>'+(duplicates.length?'<div class=cd><b>Duplicate transaction references flagged</b>'+duplicates.map(r=>'<p class=fee-meta>'+r.replace(/[&<>"]/g,'')+' · '+refs[r].length+' records</p>').join('')+'</div>':'<p class=mu>No duplicate transaction references found in loaded records.</p>')+'<button class=pb id=closeSave>Save closing</button><button class=sb id=closeCancel>Cancel</button>',sty(P[v]));
+  const calc=()=>{const n=Number(m.querySelector('#closeCash').value||0)-expectedCash;m.querySelector('#closeDiff').textContent=(n<0?'-':'')+'₹'+Math.abs(n).toLocaleString('en-IN',{maximumFractionDigits:2})+(Math.abs(n)>.009?' · Difference flagged':' · Balanced')};
+  ['#closeCash','#closeUpi','#closeBank'].forEach(s=>m.querySelector(s).oninput=calc);calc();
+  m.querySelector('#closeCancel').onclick=()=>m.remove();
+  m.querySelector('#closeSave').onclick=async()=>{const cash=Number(m.querySelector('#closeCash').value),upi=Number(m.querySelector('#closeUpi').value),bank=Number(m.querySelector('#closeBank').value);if([cash,upi,bank].some(n=>!Number.isFinite(n)||n<0)){toast('Enter valid non-negative closing totals');return}const {error}=await SB.from('cash_closings').insert({school_id:schoolId,business_date:today,cash_counted:cash,upi_counted:upi,bank_counted:bank,expected_cash:expectedCash,expected_upi:expectedUpi,expected_bank:expectedBank,notes:m.querySelector('#closeNote').value.trim(),created_by:uid});if(error){toast('Closing not saved: '+error.message);return}m.remove();toast('Daily closing saved'+(Math.abs(cash-expectedCash)>.009?' · Cash difference flagged':''))};
  }
  function wirePay(){mn.querySelectorAll('[data-pay]').forEach(b=>b.onclick=()=>paymentModal(b.getAttribute('data-pay')))}
  function paymentModal(id){
