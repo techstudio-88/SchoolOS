@@ -229,7 +229,7 @@ begin
   if lower(v_method) not in ('cash','upi','bank transfer','card','cheque','other') then raise exception 'Row % has an unsupported payment method',v_row_no; end if;
   if lower(v_admission)=any(v_seen) then raise exception 'Duplicate admission number in row %',v_row_no; end if; v_seen:=array_append(v_seen,lower(v_admission));
   if v_ref is not null and exists(select 1 from public.fee_payments where payment_reference=v_ref) then raise exception 'Transaction reference already exists (row %)',v_row_no; end if;
-  select id into v_class_id from public.classes where school_id=v_profile.school_id and regexp_replace(lower(name),'^class\\s*','')=regexp_replace(lower(v_class),'^class\\s*','') and lower(coalesce(section,'A'))=lower(v_section) limit 1;
+  select id into v_class_id from public.classes where school_id=v_profile.school_id and replace(lower(name),'class ','')=replace(lower(v_class),'class ','') and lower(coalesce(section,'A'))=lower(v_section) limit 1;
   select * into v_student from public.students where school_id=v_profile.school_id and lower(admission_number)=lower(v_admission) limit 1;
   if not found then insert into public.students(school_id,admission_number,full_name,class_id,status) values(v_profile.school_id,v_admission,v_name,v_class_id,'active') returning * into v_student; v_new_students:=v_new_students+1;
   else v_existing_students:=v_existing_students+1; if v_student.full_name is distinct from v_name or (v_class_id is not null and v_student.class_id is distinct from v_class_id) then raise exception 'Existing student data differs for admission %; resolve it before importing',v_admission; end if; end if;
