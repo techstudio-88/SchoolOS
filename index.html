@@ -208,6 +208,31 @@ header{background:#ffffffd9;border-bottom:1px solid var(--ln);backdrop-filter:bl
 @media(min-width:900px){.sh aside{box-shadow:none}.sh #mn{padding:22px 24px calc(env(safe-area-inset-bottom,0px) + 34px)}}
 @media(max-width:520px){.sh .cd,.sh .fee-person{padding:14px;border-radius:15px}.sh .hero{padding:16px}.sh .k{gap:9px}.sh .k h2{font-size:23px}}
 @media(prefers-reduced-motion:reduce){.sh .cd,.sh .fee-person,.sh .ib{transition:none}}
+/* Premium redesign for legacy task-board pages across every role */
+.sh #mn{background:linear-gradient(145deg,#f4f7ff 0%,#f2f6fb 58%,#e8fbf8 100%);padding:22px 22px calc(env(safe-area-inset-bottom,0px) + 32px)}
+.sh #mn .sub{font-size:14px;font-weight:600;color:#64748b;margin:4px 0 18px}
+.sh #mn .cd{background:rgba(255,255,255,.96);border:1px solid #dce5f0;border-radius:22px;padding:20px;box-shadow:0 8px 24px rgba(28,49,83,.055);margin:0 0 16px;transition:transform .2s ease,box-shadow .2s ease}
+.sh #mn .cd:hover{box-shadow:0 12px 30px rgba(28,49,83,.09)}
+.sh #mn .hero{border:1px solid #dce5f0;border-radius:22px;background:rgba(255,255,255,.94);padding:20px;margin-bottom:18px;box-shadow:0 8px 24px rgba(28,49,83,.05)}
+.sh #mn .hero small,.sh #mn .mu,.sh #mn .sub{color:#68788e}
+.sh #mn .pb{border:0;border-radius:13px;background:linear-gradient(120deg,#4776e6,#328da5);color:white;font-weight:650;padding:12px 17px;box-shadow:0 5px 14px #4776e622}
+.sh #mn .sb,.sh #mn .ch{border:1px solid #dce5f0;border-radius:999px;background:#eef4fb;color:#34445b;padding:8px 12px}
+.sh #mn input,.sh #mn select,.sh #mn textarea{border:1px solid #d9e2ed;background:#fff;color:#1e293b;border-radius:12px;padding:12px;max-width:100%}
+.sh #mn .li{background:#fff;border:1px solid #e0e7f0;border-radius:15px;padding:14px;margin:8px 0}
+.sh #mn .fee-grid{gap:14px}
+.sh #mn .fee-toolbar{gap:10px;margin:12px 0}
+.sh #mn .fee-person{border-radius:18px;border:1px solid #dce5f0;background:white;box-shadow:0 5px 18px #1e293b08}
+.sh #mn .rg{margin:6px}
+.sh #mn table{border-collapse:separate;border-spacing:0;width:100%;overflow:hidden;border-radius:14px}
+.sh #mn th{background:#edf3fa;color:#46566c;text-align:left}
+.sh #mn td,.sh #mn th{padding:12px;border-bottom:1px solid #e5ebf3}
+.sh #mn .task-card,.sh #mn .kanban-card{border:1px solid #dfe7f1;background:#fff;border-radius:16px;padding:15px;box-shadow:0 3px 12px #17243a08}
+.sh #mn .task-card:active,.sh #mn .kanban-card:active{transform:scale(.99)}
+.sh #mn h2,.sh #mn h3{letter-spacing:-.025em;color:#1e293b}
+.sh #mn .k{gap:13px}
+.sh #mn .k>.cd{min-width:0}
+@media(min-width:900px){.sh #mn{padding:28px 30px 40px}.sh #mn .cd{padding:24px}.sh #mn .k{gap:16px}}
+@media(max-width:520px){.sh #mn{padding:16px 14px calc(env(safe-area-inset-bottom,0px) + 28px)}.sh #mn .cd{padding:16px;border-radius:18px}.sh #mn .hero{padding:16px}.sh #mn .pb,.sh #mn .sb{max-width:100%;white-space:normal}}
 </style></style></head><body><div id="app"></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script><script>
 const SB=window.supabase.createClient('https://noaeychhtmtybzpkmgut.supabase.co','sb_publishable_NAke8-N_BG5Sde-9AUL5XA_xrnUa739');
 const ROLE_KEYS=['developer','owner','manager','principal','vice_principal','control_room','class_teacher','subject_teacher','student','parent','fees_counter'];
