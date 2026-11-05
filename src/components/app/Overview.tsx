@@ -161,38 +161,9 @@ export function Overview({
         </motion.div>
       </div>
 
-      {/* Workspaces */}
-      <div>
-        <motion.h2 variants={item} className="font-display mb-4 text-xl font-bold text-white">Your workspaces</motion.h2>
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {modules.map((m) => (
-            <motion.div key={m.id} variants={item} whileHover={{ y: -6 }} transition={{ type: "spring", stiffness: 300, damping: 20 }}>
-              <Link href={`/app/${panel.id}/${m.id}`}>
-                <GlowCard glow={m.color} className="group relative overflow-hidden rounded-3xl p-5">
-                  <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full opacity-20 blur-3xl transition group-hover:opacity-50" style={{ background: m.color }} />
-                  <div className="relative flex items-start gap-4">
-                    <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl transition group-hover:scale-110 group-hover:rotate-6" style={{ background: `${m.color}2a`, boxShadow: `0 0 26px ${m.color}55` }}>
-                      <Icon name={m.icon} size={22} style={{ color: m.color }} />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <h3 className="truncate font-display font-bold text-white">{m.title}</h3>
-                        <ArrowUpRight size={16} className="shrink-0 text-slate-500 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-white" />
-                      </div>
-                      <p className="mt-1 line-clamp-1 text-sm text-slate-400">{m.blurb}</p>
-                      <div className="mt-3 flex items-center gap-3 text-xs">
-                        <span className="rounded-full bg-white/5 px-2.5 py-1 text-slate-300">{m.features} features</span>
-                        <span className="rounded-full px-2.5 py-1 font-semibold" style={{ background: `${m.color}22`, color: m.color }}>{m.count} records</span>
-                      </div>
-                    </div>
-                  </div>
-                </GlowCard>
-              </Link>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-
+      {/* Role-specific workspace layout */}
+      <WorkspaceDeck panelId={panel.id} panelColor={panel.color} modules={modules} />
+      
       {/* Recent */}
       <motion.div variants={item}>
         <GlowCard glow="#ec4899" className="rounded-3xl p-6">
@@ -220,5 +191,72 @@ export function Overview({
         </GlowCard>
       </motion.div>
     </motion.div>
+  );
+}
+
+
+type WorkspaceModule = { id: string; title: string; icon: string; color: string; blurb: string; features: number; count: number };
+
+const DECK_LAYOUT: Record<string, string> = {
+  owner: "ledger", principal: "command", "vice-principal": "agenda", manager: "ops-board",
+  teacher: "lesson-plan", "exam-controller": "exam-register", accountant: "cashbook", hr: "directory",
+  admissions: "admission-pipeline", receptionist: "frontdesk", librarian: "catalogue", transport: "route-board",
+  warden: "residence", nurse: "care", storekeeper: "stockroom", "it-admin": "systems",
+  student: "learning-path", parent: "family-feed",
+};
+
+function WorkspaceDeck({ panelId, panelColor, modules }: { panelId: string; panelColor: string; modules: WorkspaceModule[] }) {
+  const mode = DECK_LAYOUT[panelId] ?? "command";
+  const link = (m: WorkspaceModule, index: number) => (
+    <Link key={m.id} href={`/app/${panelId}/${m.id}`} className="group block transition hover:-translate-y-0.5">
+      <div className="flex items-center gap-3 border-b border-white/[0.07] py-3">
+        <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl" style={{ background: `${m.color}20`, color: m.color }}><Icon name={m.icon} size={17} /></span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-semibold text-slate-100 group-hover:text-white">{m.title}</span>
+          <span className="block truncate text-xs text-slate-500">{m.blurb}</span>
+        </span>
+        <span className="text-right"><b className="block text-sm text-white">{m.count}</b><span className="text-[9px] uppercase tracking-wider text-slate-500">records</span></span>
+        <ArrowUpRight size={15} className="text-slate-600 group-hover:text-white" />
+      </div>
+    </Link>
+  );
+  const title = mode === "ledger" || mode === "cashbook" || mode === "stockroom" || mode === "systems" || mode === "exam-register"
+    ? "Registers & controls" : mode === "agenda" || mode === "frontdesk" || mode === "care" || mode === "family-feed"
+      ? "Today's work queue" : "Your workspaces";
+  return (
+    <section className="space-y-4">
+      <div className="flex items-end justify-between border-b border-white/10 pb-3">
+        <div><div className="text-[10px] font-semibold uppercase tracking-[.2em]" style={{ color: panelColor }}>{mode.replaceAll("-", " ")}</div><h2 className="font-display text-xl font-bold text-white">{title}</h2></div>
+        <span className="text-xs text-slate-500">{modules.length} areas · select to open</span>
+      </div>
+      {["ledger", "cashbook", "stockroom", "systems", "exam-register"].includes(mode) ? (
+        <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#090c19]/65">
+          <div className="grid grid-cols-[minmax(0,1fr)_90px_100px] bg-white/[0.04] px-4 py-2 text-[10px] uppercase tracking-widest text-slate-500"><span>Workspace</span><span className="text-right">Tools</span><span className="text-right">Records</span></div>
+          {modules.map((m) => <Link key={m.id} href={`/app/${panelId}/${m.id}`} className="grid grid-cols-[minmax(0,1fr)_90px_100px] items-center gap-2 border-t border-white/[0.06] px-4 py-3 hover:bg-white/[0.04]">
+            <span className="flex min-w-0 items-center gap-3"><Icon name={m.icon} size={17} style={{ color: m.color }} /><span className="truncate text-sm font-medium text-slate-200">{m.title}</span></span><span className="text-right text-xs text-slate-400">{m.features}</span><b className="text-right text-sm text-white">{m.count}</b>
+          </Link>)}
+        </div>
+      ) : ["ops-board", "admission-pipeline", "route-board", "residence"].includes(mode) ? (
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {["Plan", "Run", "Review"].map((col, ci) => <div key={col} className="rounded-2xl border border-white/10 bg-white/[0.025] p-3">
+            <div className="mb-2 flex items-center justify-between px-1"><h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">{col}</h3><span className="text-xs text-slate-600">{modules.filter((_,i)=>i%3===ci).length}</span></div>
+            {modules.filter((_,i)=>i%3===ci).map((m,i)=><Link key={m.id} href={`/app/${panelId}/${m.id}`} className="mb-2 block rounded-xl border border-white/[0.07] bg-[#0b1020] p-3 hover:border-white/20"><div className="flex items-center gap-2"><Icon name={m.icon} size={16} style={{color:m.color}}/><b className="min-w-0 flex-1 truncate text-sm text-white">{m.title}</b><ArrowUpRight size={13} className="text-slate-600"/></div><div className="mt-3 flex items-end justify-between"><span className="text-[10px] text-slate-500">{m.features} tools</span><b className="text-lg text-white">{m.count}</b></div></Link>)}
+          </div>)}
+        </div>
+      ) : ["agenda", "frontdesk", "care", "family-feed"].includes(mode) ? (
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(220px,.6fr)]">
+          <div className="border-l-2 pl-4" style={{borderColor:panelColor}}>{modules.map((m,i)=><div key={m.id} className="relative"><span className="absolute -left-[22px] top-5 h-2 w-2 rounded-full" style={{background:m.color}}/>{link(m,i)}</div>)}</div>
+          <aside className="h-fit rounded-2xl border border-white/10 p-5"><div className="text-[10px] uppercase tracking-widest text-slate-500">Panel summary</div><div className="mt-3 font-display text-4xl font-bold text-white">{modules.reduce((a,m)=>a+m.count,0)}</div><p className="mt-1 text-xs text-slate-500">records across assigned workspaces</p><div className="mt-5 space-y-2">{modules.slice(0,4).map(m=><div key={m.id} className="flex justify-between text-xs"><span className="text-slate-400">{m.title}</span><b className="text-slate-200">{m.count}</b></div>)}</div></aside>
+        </div>
+      ) : mode === "directory" || mode === "catalogue" ? (
+        <div className="divide-y divide-white/[0.07] border-y border-white/[0.07]">{modules.map((m,i)=><Link key={m.id} href={`/app/${panelId}/${m.id}`} className="grid grid-cols-[38px_minmax(0,1fr)_auto] items-center gap-3 py-4 hover:bg-white/[0.025]"><span className="font-mono text-xs text-slate-600">{String(i+1).padStart(2,"0")}</span><span className="min-w-0"><b className="block text-sm text-white">{m.title}</b><span className="text-xs text-slate-500">{m.blurb}</span></span><span className="text-sm font-semibold" style={{color:m.color}}>{m.count}</span></Link>)}</div>
+      ) : (
+        <div className={`grid gap-3 ${mode === "learning-path" ? "md:grid-cols-2" : mode === "lesson-plan" ? "md:grid-cols-2 xl:grid-cols-4" : mode === "command" ? "md:grid-cols-2 xl:grid-cols-3" : "md:grid-cols-2 xl:grid-cols-3"}`}>
+          {modules.map((m,i)=><Link key={m.id} href={`/app/${panelId}/${m.id}`} className="group relative overflow-hidden border border-white/10 bg-white/[0.025] p-4 transition hover:border-white/20 hover:bg-white/[0.05]" style={{borderRadius:mode==="learning-path"?"22px":mode==="lesson-plan"?"10px":mode==="command"?"18px":"14px"}}>
+            <div className="mb-4 flex items-center justify-between"><span className="text-[10px] font-mono" style={{color:m.color}}>{String(i+1).padStart(2,"0")}</span><Icon name={m.icon} size={18} style={{color:m.color}}/></div><b className="block text-sm text-white">{m.title}</b><p className="mt-1 line-clamp-2 text-xs text-slate-500">{m.blurb}</p><div className="mt-4 flex items-end justify-between"><span className="text-[10px] text-slate-500">{m.features} workflows</span><span className="font-display text-2xl font-bold text-white">{m.count}</span></div><div className="mt-3 h-1 overflow-hidden rounded-full bg-white/5"><div className="h-full rounded-full" style={{width:`${Math.min(100,m.count*5)}%`,background:m.color}}/></div>
+          </Link>)}
+        </div>
+      )}
+    </section>
   );
 }
