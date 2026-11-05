@@ -189,7 +189,7 @@ function Inner({ module: m, counts: initialCounts, disabled: initialDisabled, pa
 
       {list.length === 0 && <p className="py-16 text-center text-sm text-slate-500">No workflows match those filters.</p>}
       <AnimatePresence>
-        {selected && <FeatureDrawer key={selected.key} feature={selected} moduleTitle={m.title} color={m.color} icon={m.icon}
+        {selected && <FeatureDrawer key={selected.key} feature={selected} moduleTitle={m.title} moduleId={m.id} color={m.color} icon={m.icon}
           onClose={() => open(null)}
           onChange={(count, enabled) => {
             setCounts((c) => ({ ...c, [selected.key]: count }));
