@@ -36,6 +36,8 @@ export function AppShell({
   const [mobile, setMobile] = useState(false);
   const [palette, setPalette] = useState(false);
   const [menu, setMenu] = useState<null | "panels" | "bell" | "user">(null);
+  const [expandedModule, setExpandedModule] = useState<string | null>(null);
+  const [sidebarQuery, setSidebarQuery] = useState("");
   const base = `/app/${panel.id}`;
 
   useEffect(() => setMobile(false), [pathname]);
@@ -108,22 +110,55 @@ export function AppShell({
               </Link>
             );
           })}
-          {!collapsed && <div className="px-3 pb-1 pt-4 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">Workspaces</div>}
-          {modules.map((m, i) => {
+          {!collapsed && (
+            <div className="px-2 pb-2 pt-4">
+              <div className="mb-2 flex items-center justify-between px-1">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">All workspaces & features</span>
+                <span className="rounded-full bg-white/[0.07] px-2 py-0.5 text-[10px] text-slate-400">{modules.reduce((n, m) => n + (MODULE_MAP[m.id]?.features.length ?? 0), 0)}</span>
+              </div>
+              <div className="relative">
+                <Search size={13} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                <input value={sidebarQuery} onChange={(e) => setSidebarQuery(e.target.value)} placeholder="Filter this panel…" className="w-full rounded-xl border border-white/[0.08] bg-white/[0.035] py-2 pl-8 pr-3 text-xs text-slate-200 outline-none placeholder:text-slate-600 focus:border-violet-400/40" />
+              </div>
+            </div>
+          )}
+          {modules.filter((m) => {
+            const q = sidebarQuery.trim().toLowerCase();
+            const fs = MODULE_MAP[m.id]?.features ?? [];
+            return !q || m.title.toLowerCase().includes(q) || fs.some((f) => f.name.toLowerCase().includes(q));
+          }).map((m, i) => {
             const href = `${base}/${m.id}`;
-            const active = pathname === href;
+            const active = pathname === href || pathname.startsWith(`${href}/`);
+            const featureList = MODULE_MAP[m.id]?.features ?? [];
+            const q = sidebarQuery.trim().toLowerCase();
+            const visibleFeatures = q ? featureList.filter((f) => f.name.toLowerCase().includes(q)) : featureList;
+            const expanded = expandedModule === m.id || Boolean(q);
             return (
-              <motion.div key={m.id} initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.05 * i, duration: 0.5 }}>
-                <Link href={href} title={m.title} className="group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition hover:bg-white/5">
-                  {active && <motion.span layoutId="active-pill" className="absolute inset-0 rounded-xl" style={{ background: `linear-gradient(90deg, ${m.color}40, transparent)`, boxShadow: `inset 2px 0 0 ${m.color}` }} transition={{ type: "spring", stiffness: 380, damping: 32 }} />}
-                  <Icon name={m.icon} size={18} className="relative shrink-0 transition group-hover:scale-110" style={{ color: active ? m.color : "#94a3b8" }} />
+              <motion.div key={m.id} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.025 * i, duration: 0.35 }}>
+                <div className="group relative flex items-center rounded-xl transition hover:bg-white/5">
+                  <Link href={href} title={m.title} className="relative flex min-w-0 flex-1 items-center gap-3 px-3 py-2.5 text-sm">
+                    {active && <motion.span layoutId="active-pill" className="absolute inset-0 rounded-xl" style={{ background: `linear-gradient(90deg, ${m.color}30, transparent)`, boxShadow: `inset 2px 0 0 ${m.color}` }} transition={{ type: "spring", stiffness: 380, damping: 32 }} />}
+                    <Icon name={m.icon} size={18} className="relative shrink-0 transition group-hover:scale-110" style={{ color: active ? m.color : "#94a3b8" }} />
+                    {!collapsed && <span className={`relative min-w-0 flex-1 truncate ${active ? "font-semibold text-white" : "text-slate-300"}`}>{m.title}</span>}
+                  </Link>
                   {!collapsed && (
-                    <>
-                      <span className={`relative flex-1 truncate ${active ? "font-semibold text-white" : "text-slate-300"}`}>{m.title}</span>
-                      {m.count > 0 && <span className="relative rounded-full px-1.5 py-0.5 text-[10px] font-semibold" style={{ background: `${m.color}2a`, color: m.color }}>{m.count}</span>}
-                    </>
+                    <button type="button" aria-label={`Show ${m.title} features`} aria-expanded={expanded} onClick={() => setExpandedModule(expanded ? null : m.id)} className="relative mr-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-500 transition hover:bg-white/10 hover:text-white">
+                      <span className="text-[10px] tabular-nums">{featureList.length}</span>
+                      <motion.span animate={{ rotate: expanded ? 90 : 0 }} className="absolute -right-0.5 top-0.5"><ChevronsRight size={11} /></motion.span>
+                    </button>
                   )}
-                </Link>
+                </div>
+                {!collapsed && expanded && (
+                  <div className="mb-2 ml-[21px] border-l border-white/[0.09] pl-3">
+                    {visibleFeatures.map((feature) => (
+                      <Link key={feature.key} href={`${href}?feature=${encodeURIComponent(feature.key)}`} title={feature.description} className="my-0.5 flex items-start gap-2 rounded-lg px-2.5 py-2 text-[11px] leading-snug text-slate-400 transition hover:bg-white/[0.05] hover:text-slate-200">
+                        <span className="mt-1 h-1 w-1 shrink-0 rounded-full" style={{ background: m.color }} />
+                        <span>{feature.name}</span>
+                      </Link>
+                    ))}
+                    {visibleFeatures.length === 0 && <div className="px-2 py-2 text-[11px] text-slate-600">No matching features</div>}
+                  </div>
+                )}
               </motion.div>
             );
           })}
