@@ -152,6 +152,7 @@ export function FeatureDrawer({
   function startEdit(r: Rec) {
     setEditing(r.id);
     setForm({ title: r.title, person: r.person, amount: r.amount ? String(r.amount) : "", dueDate: r.dueDate, status: r.status, notes: r.notes });
+    setPayload(r.payload ?? {});
     setShowForm(true);
   }
 
