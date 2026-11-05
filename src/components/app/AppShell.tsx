@@ -132,7 +132,7 @@ export function AppShell({
             const featureList = MODULE_MAP[m.id]?.features ?? [];
             const q = sidebarQuery.trim().toLowerCase();
             const visibleFeatures = q ? featureList.filter((f) => f.name.toLowerCase().includes(q)) : featureList;
-            const expanded = expandedModule === m.id || Boolean(q);
+            const expanded = !collapsed;
             return (
               <motion.div key={m.id} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.025 * i, duration: 0.35 }}>
                 <div className="group relative flex items-center rounded-xl transition hover:bg-white/5">
