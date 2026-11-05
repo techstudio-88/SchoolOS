@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Download, Loader2, Pencil, Plus, Sparkles, Trash2, X } from "lucide-react";
 import { Icon } from "@/components/icons";
 import { STATUSES } from "@/lib/catalog";
+import { getWorkflowFields } from "@/lib/workflow-fields";
 
 type Rec = {
   id: number;
@@ -37,7 +38,7 @@ export function FeatureDrawer({
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<Rec[]>([]);
   const [enabled, setEnabled] = useState(true);
-  const [form, setForm] = useState(EMPTY);
+  const [form, setForm] = useState(EMPTY);\n  const [payload, setPayload] = useState<Record<string, string | number | boolean | null>>({});\n  const fields = useMemo(() => getWorkflowFields(moduleId), [moduleId]);
   const [editing, setEditing] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -90,7 +91,7 @@ export function FeatureDrawer({
     if (!form.title.trim()) return setErr("Please add a title.");
     setErr("");
     setSaving(true);
-    const body = { ...form, amount: Number(form.amount) || 0, feature: feature.key };
+    const body = { ...form, amount: Number(form.amount) || 0, payload, feature: feature.key };
     const res = await fetch(editing ? `/api/records/${editing}` : "/api/records", {
       method: editing ? "PATCH" : "POST",
       headers: { "content-type": "application/json" },
@@ -196,7 +197,7 @@ export function FeatureDrawer({
           <div className="flex items-center gap-2">
             <input className="input !py-2" placeholder="Filter records…" value={q} onChange={(e) => setQ(e.target.value)} />
             <button
-              onClick={() => { setShowForm((v) => !v); setEditing(null); setForm(EMPTY); }}
+              onClick={() => { setShowForm((v) => !v); setEditing(null); setForm(EMPTY); setPayload({}); }}
               className="flex shrink-0 items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110"
               style={{ background: `linear-gradient(110deg, ${color}, #6366f1)`, boxShadow: `0 0 24px ${color}66` }}
             >
@@ -222,20 +223,24 @@ export function FeatureDrawer({
                 className="overflow-hidden"
               >
                 <div className="space-y-3 rounded-2xl border p-4" style={{ borderColor: `${color}55`, background: `${color}0d` }}>
-                  <input className="input" autoFocus placeholder="Title *" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-                  <div className="grid grid-cols-2 gap-3">
-                    <input className="input" placeholder="Person / owner" value={form.person} onChange={(e) => setForm({ ...form, person: e.target.value })} />
-                    <input className="input" type="number" min={0} placeholder="Amount (₹)" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} />
-                    <input className="input" type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} />
-                    <select className="input" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
-                      {STATUSES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
-                    </select>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <label className="block sm:col-span-2"><span className="mb-1.5 block text-xs font-medium text-slate-300">Record name *</span><input className="input" autoFocus placeholder={feature.name} value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></label>
+                    {fields.map((field) => <label key={field.key} className={`block ${field.type === "textarea" ? "sm:col-span-2" : ""}`}>
+                      <span className="mb-1.5 block text-xs font-medium text-slate-300">{field.label}{field.required ? " *" : ""}</span>
+                      {field.type === "textarea" ? <textarea className="input min-h-[76px]" value={String(payload[field.key] ?? "")} onChange={(e) => setPayload({ ...payload, [field.key]: e.target.value })} /> :
+                       field.type === "select" ? <select className="input" value={String(payload[field.key] ?? "")} onChange={(e) => setPayload({ ...payload, [field.key]: e.target.value })}><option value="">Choose…</option>{(field.options ?? []).map((v) => <option key={v} value={v}>{v}</option>)}</select> :
+                       <input className="input" type={field.type ?? "text"} value={String(payload[field.key] ?? "")} onChange={(e) => setPayload({ ...payload, [field.key]: field.type === "number" ? (e.target.value === "" ? "" : Number(e.target.value)) : e.target.value })} />}
+                    </label>)}
+                    <label className="block"><span className="mb-1.5 block text-xs font-medium text-slate-300">Assigned person / owner</span><input className="input" placeholder="Name" value={form.person} onChange={(e) => setForm({ ...form, person: e.target.value })} /></label>
+                    <label className="block"><span className="mb-1.5 block text-xs font-medium text-slate-300">Amount (₹), if relevant</span><input className="input" type="number" min={0} placeholder="0" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} /></label>
+                    <label className="block"><span className="mb-1.5 block text-xs font-medium text-slate-300">Due date</span><input className="input" type="date" value={form.dueDate} onChange={(e) => setForm({ ...form, dueDate: e.target.value })} /></label>
+                    <label className="block"><span className="mb-1.5 block text-xs font-medium text-slate-300">Workflow status</span><select className="input" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>{STATUSES.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}</select></label>
+                    <label className="block sm:col-span-2"><span className="mb-1.5 block text-xs font-medium text-slate-300">Internal notes</span><textarea className="input min-h-[70px]" placeholder="Notes…" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></label>
                   </div>
-                  <textarea className="input min-h-[70px]" placeholder="Notes" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
                   {err && <p className="text-xs text-rose-400">{err}</p>}
                   <div className="flex gap-2">
                     <button disabled={saving} className="btn-glow rounded-xl px-5 py-2.5 text-sm">{saving ? "Saving…" : editing ? "Save changes" : "Add record"}</button>
-                    <button type="button" onClick={() => { setShowForm(false); setEditing(null); setForm(EMPTY); }} className="rounded-xl px-4 py-2.5 text-sm text-slate-400 hover:text-white">Cancel</button>
+                    <button type="button" onClick={() => { setShowForm(false); setEditing(null); setForm(EMPTY); setPayload({}); }} className="rounded-xl px-4 py-2.5 text-sm text-slate-400 hover:text-white">Cancel</button>
                   </div>
                 </div>
               </motion.form>
