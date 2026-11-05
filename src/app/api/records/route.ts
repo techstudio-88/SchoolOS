@@ -68,6 +68,7 @@ export async function POST(req: Request) {
       dueDate: String(b.dueDate ?? "").slice(0, 10),
       status: STATUS.includes(String(b.status)) ? String(b.status) : "open",
       notes: String(b.notes ?? "").slice(0, 1000),
+      payload: (b.payload && typeof b.payload === "object" && !Array.isArray(b.payload)) ? b.payload : {},
     })
     .returning();
   return NextResponse.json({ record: row });
