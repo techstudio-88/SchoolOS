@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import { Suspense, useMemo, useState } from "react";
 import { ChevronRight, Search, ArrowUpRight, ListFilter } from "lucide-react";
