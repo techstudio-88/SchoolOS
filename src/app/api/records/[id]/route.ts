@@ -19,7 +19,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   if (typeof b.dueDate === "string") patch.dueDate = b.dueDate.slice(0, 10);
   if (b.amount !== undefined) patch.amount = Math.max(0, Math.min(2_000_000_000, Number(b.amount) || 0));
   if (typeof b.status === "string" && STATUS.includes(b.status)) patch.status = b.status;
-  if (b.payload && typeof b.payload === "object" && !Array.isArray(b.payload)) patch.payload = b.payload;
+  if (b.payload && typeof b.payload === "object" && !Array.isArray(b.payload)) patch.payload = b.payload as Record<string, string | number | boolean | null>;
   if (!Object.keys(patch).length) return NextResponse.json({ error: "nothing to update" }, { status: 400 });
   const [row] = await db
     .update(records)
