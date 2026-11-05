@@ -27,8 +27,6 @@ export default async function FeaturePage({
       color={mod.color}
       icon={mod.icon}
       fullPage
-      onClose={() => undefined}
-      onChange={() => undefined}
     />
   );
 }
