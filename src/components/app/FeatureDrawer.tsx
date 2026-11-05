@@ -27,8 +27,8 @@ export function FeatureDrawer({
   moduleId,
   color,
   icon,
-  onClose,
-  onChange,
+  onClose = () => {},
+  onChange = () => {},
   fullPage = false,
 }: {
   feature: { key: string; name: string; description: string };
@@ -36,8 +36,8 @@ export function FeatureDrawer({
   moduleId: string;
   color: string;
   icon: string;
-  onClose: () => void;
-  onChange: (count: number, enabled: boolean) => void;
+  onClose?: () => void;
+  onChange?: (count: number, enabled: boolean) => void;
   fullPage?: boolean;
 }) {
   const [loading, setLoading] = useState(true);
