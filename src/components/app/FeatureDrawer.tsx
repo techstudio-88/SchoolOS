@@ -16,6 +16,7 @@ type Rec = {
   status: string;
   notes: string;
   createdAt: string;
+  payload?: Record<string, string | number | boolean | null>;
 };
 
 const EMPTY = { title: "", person: "", amount: "", dueDate: "", status: "open", notes: "" };
@@ -23,6 +24,7 @@ const EMPTY = { title: "", person: "", amount: "", dueDate: "", status: "open", 
 export function FeatureDrawer({
   feature,
   moduleTitle,
+  moduleId,
   color,
   icon,
   onClose,
@@ -30,6 +32,7 @@ export function FeatureDrawer({
 }: {
   feature: { key: string; name: string; description: string };
   moduleTitle: string;
+  moduleId: string;
   color: string;
   icon: string;
   onClose: () => void;
@@ -38,7 +41,9 @@ export function FeatureDrawer({
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<Rec[]>([]);
   const [enabled, setEnabled] = useState(true);
-  const [form, setForm] = useState(EMPTY);\n  const [payload, setPayload] = useState<Record<string, string | number | boolean | null>>({});\n  const fields = useMemo(() => getWorkflowFields(moduleId), [moduleId]);
+  const [form, setForm] = useState(EMPTY);
+  const [payload, setPayload] = useState<Record<string, string | number | boolean | null>>({});
+  const fields = useMemo(() => getWorkflowFields(moduleId), [moduleId]);
   const [editing, setEditing] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
