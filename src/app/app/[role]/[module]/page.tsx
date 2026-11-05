@@ -15,6 +15,7 @@ export default async function ModulePage({ params }: { params: Promise<{ role: s
   const data = await moduleData(session.schoolId, moduleId);
   return (
     <ModuleView
+      panelId={panel.id}
       module={{ id: mod.id, title: mod.title, icon: mod.icon, color: mod.color, blurb: mod.blurb, features: mod.features.map((f) => ({ key: f.key, name: f.name, description: f.description })) }}
       counts={data.counts}
       disabled={data.disabled}
