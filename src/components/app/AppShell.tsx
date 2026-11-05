@@ -151,7 +151,7 @@ export function AppShell({
                 {!collapsed && expanded && (
                   <div className="mb-2 ml-[21px] border-l border-white/[0.09] pl-3">
                     {visibleFeatures.map((feature) => (
-                      <Link key={feature.key} href={`${href}?feature=${encodeURIComponent(feature.key)}`} title={feature.description} className="my-0.5 flex items-start gap-2 rounded-lg px-2.5 py-2 text-[11px] leading-snug text-slate-400 transition hover:bg-white/[0.05] hover:text-slate-200">
+                      <Link key={feature.key} href={`${href}/${encodeURIComponent(feature.key)}`} title={feature.description} className="my-0.5 flex items-start gap-2 rounded-lg px-2.5 py-2 text-[11px] leading-snug text-slate-400 transition hover:bg-white/[0.05] hover:text-slate-200">
                         <span className="mt-1 h-1 w-1 shrink-0 rounded-full" style={{ background: m.color }} />
                         <span>{feature.name}</span>
                       </Link>
@@ -315,7 +315,7 @@ function CommandPalette({ open, onClose, panel, modules, onSwitch }: { open: boo
       const mod = MODULE_MAP[m.id];
       items.push({ id: `m-${m.id}`, label: m.title, hint: "Workspace", icon: m.icon, color: m.color, run: () => router.push(`/app/${panel.id}/${m.id}`) });
       for (const f of mod.features) {
-        items.push({ id: f.key, label: f.name, hint: m.title, icon: m.icon, color: m.color, run: () => router.push(`/app/${panel.id}/${m.id}?feature=${encodeURIComponent(f.key)}`) });
+        items.push({ id: f.key, label: f.name, hint: m.title, icon: m.icon, color: m.color, run: () => router.push(`/app/${panel.id}/${m.id}/${encodeURIComponent(f.key)}`) });
       }
     }
     for (const p of PANELS) items.push({ id: `p-${p.id}`, label: `Switch to ${p.title} panel`, hint: "Panel", icon: p.icon, color: p.color, run: () => onSwitch(p.id) });
