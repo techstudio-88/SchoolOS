@@ -1,12 +1,11 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { AnimatePresence, motion } from "motion/react";
+import { motion } from "motion/react";
 import { Suspense, useMemo, useState } from "react";
 import { ChevronRight, Search, ArrowUpRight, ListFilter } from "lucide-react";
 import { Counter } from "@/components/fx";
 import { Icon } from "@/components/icons";
-import { FeatureDrawer } from "./FeatureDrawer";
 
 type Mod = {
   id: string; title: string; icon: string; color: string; blurb: string;
@@ -38,9 +37,7 @@ function Inner({ module: m, counts: initialCounts, disabled: initialDisabled, pa
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const params = useSearchParams();
-  const selectedKey = params.get("feature");
-  const selected = m.features.find((f) => f.key === selectedKey) ?? null;
+
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<"all" | "used" | "off">("all");
   const [counts, setCounts] = useState(initialCounts);
@@ -57,10 +54,8 @@ function Inner({ module: m, counts: initialCounts, disabled: initialDisabled, pa
   }, [m.features, q, filter, counts, disabled]);
   const totalRecords = Object.values(counts).reduce((a, b) => a + b, 0);
   const activeFeatures = Object.values(counts).filter((n) => n > 0).length;
-  const open = (key: string | null) => {
-    const sp = new URLSearchParams(params.toString());
-    if (key) sp.set("feature", key); else sp.delete("feature");
-    router.replace(`${pathname}${sp.size ? `?${sp}` : ""}`, { scroll: false });
+  const open = (key: string) => {
+    router.push(`${pathname}/${encodeURIComponent(key)}`);
   };
 
   const featureButton = (f: Mod["features"][number], i: number, variant: "row" | "tile" | "number" = "row") => {
@@ -188,14 +183,6 @@ function Inner({ module: m, counts: initialCounts, disabled: initialDisabled, pa
       )}
 
       {list.length === 0 && <p className="py-16 text-center text-sm text-slate-500">No workflows match those filters.</p>}
-      <AnimatePresence>
-        {selected && <FeatureDrawer key={selected.key} feature={selected} moduleTitle={m.title} moduleId={m.id} color={m.color} icon={m.icon}
-          onClose={() => open(null)}
-          onChange={(count, enabled) => {
-            setCounts((c) => ({ ...c, [selected.key]: count }));
-            setDisabled((d) => { const n = new Set(d); if (enabled) n.delete(selected.key); else n.add(selected.key); return n; });
-          }} />}
-      </AnimatePresence>
     </div>
   );
 }
