@@ -29,6 +29,7 @@ export function FeatureDrawer({
   icon,
   onClose,
   onChange,
+  fullPage = false,
 }: {
   feature: { key: string; name: string; description: string };
   moduleTitle: string;
@@ -37,6 +38,7 @@ export function FeatureDrawer({
   icon: string;
   onClose: () => void;
   onChange: (count: number, enabled: boolean) => void;
+  fullPage?: boolean;
 }) {
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<Rec[]>([]);
@@ -69,10 +71,11 @@ export function FeatureDrawer({
   }, [load]);
 
   useEffect(() => {
+    if (fullPage) return;
     const h = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
-  }, [onClose]);
+  }, [onClose, fullPage]);
 
   const today = new Date().toISOString().slice(0, 10);
   const stats = useMemo(() => {
@@ -158,17 +161,17 @@ export function FeatureDrawer({
 
   return (
     <>
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm" />
+      {!fullPage && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 z-[60] bg-black/70 backdrop-blur-sm" />}
       <motion.aside
-        initial={{ x: "100%" }}
-        animate={{ x: 0 }}
-        exit={{ x: "100%" }}
+        initial={fullPage ? { opacity: 0, y: 12 } : { x: "100%" }}
+        animate={fullPage ? { opacity: 1, y: 0 } : { x: 0 }}
+        exit={fullPage ? { opacity: 0 } : { x: "100%" }}
         transition={{ type: "spring", stiffness: 280, damping: 32 }}
-        className="fixed inset-y-0 right-0 z-[61] flex w-full max-w-2xl flex-col border-l border-white/10 bg-[#080a18] shadow-[-30px_0_100px_rgba(0,0,0,0.6)]"
+        className={fullPage ? "relative mx-auto flex min-h-[calc(100vh-120px)] w-full max-w-[1500px] flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#080a18]" : "fixed inset-y-0 right-0 z-[61] flex w-full max-w-2xl flex-col border-l border-white/10 bg-[#080a18] shadow-[-30px_0_100px_rgba(0,0,0,0.6)]"}
         style={{ boxShadow: `-20px 0 100px -20px ${color}55` }}
       >
         <div className="relative overflow-hidden border-b border-white/10 p-6" style={{ background: `linear-gradient(120deg, ${color}2e, transparent)` }}>
-          <button onClick={onClose} className="absolute right-4 top-4 rounded-xl p-2 text-slate-400 transition hover:bg-white/10 hover:text-white" aria-label="Close"><X size={18} /></button>
+          {!fullPage && <button onClick={onClose} className="absolute right-4 top-4 rounded-xl p-2 text-slate-400 transition hover:bg-white/10 hover:text-white" aria-label="Close"><X size={18} /></button>}
           <div className="flex items-center gap-3 text-xs" style={{ color }}>
             <Icon name={icon} size={16} /> {moduleTitle}
           </div>
