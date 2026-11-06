@@ -42,6 +42,10 @@ export function AppShell({
 
   useEffect(() => setMobile(false), [pathname]);
   useEffect(() => {
+    const activeModule = pathname.split("/")[3];
+    setExpandedModule(activeModule && MODULE_MAP[activeModule] ? activeModule : null);
+  }, [pathname]);
+  useEffect(() => {
     const h = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
@@ -113,12 +117,12 @@ export function AppShell({
           {!collapsed && (
             <div className="px-2 pb-2 pt-4">
               <div className="mb-2 flex items-center justify-between px-1">
-                <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">All workspaces & features</span>
+                <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-500">Workspaces</span>
                 <span className="rounded-full bg-white/[0.07] px-2 py-0.5 text-[10px] text-slate-400">{modules.reduce((n, m) => n + (MODULE_MAP[m.id]?.features.length ?? 0), 0)}</span>
               </div>
               <div className="relative">
                 <Search size={13} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-                <input value={sidebarQuery} onChange={(e) => setSidebarQuery(e.target.value)} placeholder="Filter this panel…" className="w-full rounded-xl border border-white/[0.08] bg-white/[0.035] py-2 pl-8 pr-3 text-xs text-slate-200 outline-none placeholder:text-slate-600 focus:border-violet-400/40" />
+                <input value={sidebarQuery} onChange={(e) => setSidebarQuery(e.target.value)} placeholder="Search features…" className="w-full rounded-xl border border-white/[0.08] bg-white/[0.035] py-2 pl-8 pr-3 text-xs text-slate-200 outline-none placeholder:text-slate-600 focus:border-violet-400/40" />
               </div>
             </div>
           )}
@@ -132,7 +136,7 @@ export function AppShell({
             const featureList = MODULE_MAP[m.id]?.features ?? [];
             const q = sidebarQuery.trim().toLowerCase();
             const visibleFeatures = q ? featureList.filter((f) => f.name.toLowerCase().includes(q)) : featureList;
-            const expanded = !collapsed;
+            const expanded = !collapsed && (q ? visibleFeatures.length > 0 : expandedModule === m.id);
             return (
               <motion.div key={m.id} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.025 * i, duration: 0.35 }}>
                 <div className="group relative flex items-center rounded-xl transition hover:bg-white/5">
@@ -142,7 +146,7 @@ export function AppShell({
                     {!collapsed && <span className={`relative min-w-0 flex-1 truncate ${active ? "font-semibold text-white" : "text-slate-300"}`}>{m.title}</span>}
                   </Link>
                   {!collapsed && (
-                    <button type="button" aria-label={`Show ${m.title} features`} aria-expanded={expanded} onClick={() => setExpandedModule(expanded ? null : m.id)} className="relative mr-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-500 transition hover:bg-white/10 hover:text-white">
+                    <button type="button" aria-label={`Show ${m.title} features`} aria-expanded={expanded} onClick={() => setExpandedModule(expandedModule === m.id ? null : m.id)} className="relative mr-1 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-500 transition hover:bg-white/10 hover:text-white">
                       <span className="text-[10px] tabular-nums">{featureList.length}</span>
                       <motion.span animate={{ rotate: expanded ? 90 : 0 }} className="absolute -right-0.5 top-0.5"><ChevronsRight size={11} /></motion.span>
                     </button>
