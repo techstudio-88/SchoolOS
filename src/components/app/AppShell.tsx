@@ -39,9 +39,18 @@ export function AppShell({
   const [menu, setMenu] = useState<null | "panels" | "bell" | "user">(null);
   const [expandedModule, setExpandedModule] = useState<string | null>(null);
   const [sidebarQuery, setSidebarQuery] = useState("");
+  const [activityNotices, setActivityNotices] = useState<Notice[]>([]);
+  const allNotices = [...activityNotices, ...notices];
   const base = `/app/${panel.id}`;
 
   useEffect(() => setMobile(false), [pathname]);
+  useEffect(() => {
+    let active = true;
+    fetch("/api/notifications", { cache: "no-store" }).then((r) => r.ok ? r.json() : null).then((data) => {
+      if (active && data?.notifications) setActivityNotices(data.notifications);
+    }).catch(() => {});
+    return () => { active = false; };
+  }, [pathname]);
   useEffect(() => {
     const activeModule = pathname.split("/")[3];
     setExpandedModule(activeModule && MODULE_MAP[activeModule] ? activeModule : null);
@@ -239,12 +248,12 @@ export function AppShell({
             <div className="relative">
               <button onClick={() => setMenu(menu === "bell" ? null : "bell")} className="glass relative rounded-xl p-2.5 text-slate-300 hover:bg-white/10" aria-label="Notifications">
                 <Bell size={18} />
-                {notices.length > 0 && <span className="absolute right-1.5 top-1.5 h-2 w-2 animate-pulse rounded-full bg-pink-500 shadow-[0_0_10px_#ec4899]" />}
+                {allNotices.length > 0 && <span className="absolute right-1.5 top-1.5 h-2 w-2 animate-pulse rounded-full bg-pink-500 shadow-[0_0_10px_#ec4899]" />}
               </button>
               <Dropdown open={menu === "bell"} close={() => setMenu(null)} className="w-80 p-3">
                 <div className="mb-2 text-xs font-semibold uppercase tracking-widest text-slate-500">Platform notices</div>
-                {notices.length === 0 && <p className="p-3 text-sm text-slate-500">You&apos;re all caught up ✨</p>}
-                {notices.map((n) => (
+                {allNotices.length === 0 && <p className="p-3 text-sm text-slate-500">You&apos;re all caught up ✨</p>}
+                {allNotices.map((n) => (
                   <div key={n.id} className="mb-2 rounded-xl bg-white/5 p-3">
                     <div className="text-sm font-medium text-white">{n.title}</div>
                     {n.body && <div className="mt-1 text-xs text-slate-400">{n.body}</div>}
