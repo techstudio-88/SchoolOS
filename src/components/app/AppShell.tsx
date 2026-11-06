@@ -10,6 +10,7 @@ import {
 import { Icon } from "@/components/icons";
 import { Logo } from "@/components/landing/Hero";
 import { MODULE_MAP, PANELS, TOTAL_FEATURES } from "@/lib/catalog";
+import { WorkspaceShortcuts } from "@/components/app/WorkspaceShortcuts";
 
 type PanelLite = { id: string; title: string; tagline: string; icon: string; color: string };
 type ModLite = { id: string; title: string; icon: string; color: string; count: number; features: number };
@@ -114,6 +115,7 @@ export function AppShell({
               </Link>
             );
           })}
+          {!collapsed && <WorkspaceShortcuts panelId={panel.id} base={base} modules={modules} pathname={pathname} />}
           {!collapsed && (
             <div className="px-2 pb-2 pt-4">
               <div className="mb-2 flex items-center justify-between px-1">
