@@ -3,6 +3,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { db, featureSettings, records } from "@/db";
 import { FEATURE_MAP, SAMPLE_PEOPLE } from "@/lib/catalog";
 import { getSession } from "@/lib/session";
+import { PANEL_MAP } from "@/lib/catalog";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +13,9 @@ export async function GET(req: Request) {
   const session = await getSession();
   if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const key = new URL(req.url).searchParams.get("feature") ?? "";
-  if (!FEATURE_MAP[key]) return NextResponse.json({ error: "unknown feature" }, { status: 400 });
+  const feature = FEATURE_MAP[key];
+  if (!feature) return NextResponse.json({ error: "unknown feature" }, { status: 400 });
+  if (!PANEL_MAP[session.role]?.modules.includes(feature.moduleId)) return NextResponse.json({ error: "forbidden" }, { status: 403 });
   const [rows, setting] = await Promise.all([
     db
       .select()
@@ -36,6 +39,7 @@ export async function POST(req: Request) {
   const key = String(b.feature ?? "");
   const feature = FEATURE_MAP[key];
   if (!feature) return NextResponse.json({ error: "unknown feature" }, { status: 400 });
+  if (!PANEL_MAP[session.role]?.modules.includes(feature.moduleId)) return NextResponse.json({ error: "forbidden" }, { status: 403 });
 
   // Bulk sample data
   if (b.sample) {
