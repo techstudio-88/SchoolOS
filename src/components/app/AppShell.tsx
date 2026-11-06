@@ -14,7 +14,7 @@ import { WorkspaceShortcuts } from "@/components/app/WorkspaceShortcuts";
 
 type PanelLite = { id: string; title: string; tagline: string; icon: string; color: string };
 type ModLite = { id: string; title: string; icon: string; color: string; count: number; features: number };
-type Notice = { id: number; title: string; body: string };
+type Notice = { id: number | string; title: string; body: string; kind?: string };
 
 export function AppShell({
   panel,
