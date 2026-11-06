@@ -50,6 +50,7 @@ export function FeatureDrawer({
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [filter, setFilter] = useState("all");
+  const [activeView, setActiveView] = useState<"overview" | "records" | "insights">("overview");
   const [q, setQ] = useState("");
   const [err, setErr] = useState("");
 
@@ -170,14 +171,14 @@ export function FeatureDrawer({
         className={fullPage ? "relative -mx-4 -my-4 flex min-h-[calc(100vh-72px)] w-[calc(100%+2rem)] max-w-none flex-col overflow-visible rounded-none border-0 bg-transparent shadow-none md:-mx-8 md:w-[calc(100%+4rem)]" : "fixed inset-y-0 right-0 z-[61] flex w-full max-w-2xl flex-col border-l border-white/10 bg-[#080a18] shadow-[-30px_0_100px_rgba(0,0,0,0.6)]"}
         style={{ boxShadow: fullPage ? "none" : `-20px 0 100px -20px ${color}55` }}
       >
-        <div className="relative overflow-hidden border-b border-white/10 p-6" style={{ background: `linear-gradient(120deg, ${color}2e, transparent)` }}>
+        <div className="border-b border-white/10 bg-[#0c1020] px-5 py-6 md:px-8">
           {!fullPage && <button onClick={onClose} className="absolute right-4 top-4 rounded-xl p-2 text-slate-400 transition hover:bg-white/10 hover:text-white" aria-label="Close"><X size={18} /></button>}
           <div className="flex items-center gap-3 text-xs" style={{ color }}>
             <Icon name={icon} size={16} /> {moduleTitle}
           </div>
           <h2 className="font-display mt-2 pr-10 text-2xl font-bold text-white">{feature.name}</h2>
           <p className="mt-1 text-sm text-slate-400">{feature.description}</p>
-          <div className="mt-4 flex flex-wrap items-center gap-3">
+          <div className="mt-5 flex flex-wrap items-center gap-3">
             <button onClick={toggle} className="flex items-center gap-2.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-slate-200" aria-pressed={enabled}>
               <span className="relative h-5 w-9 rounded-full transition" style={{ background: enabled ? color : "#334155" }}>
                 <motion.span layout transition={{ type: "spring", stiffness: 500, damping: 30 }} className="absolute top-0.5 h-4 w-4 rounded-full bg-white" style={{ left: enabled ? 18 : 2 }} />
@@ -188,7 +189,8 @@ export function FeatureDrawer({
           </div>
         </div>
 
-        <div className="grid grid-cols-4 gap-2 border-b border-white/10 p-4">
+        <nav className="flex flex-wrap items-center gap-1 border-b border-white/10 bg-[#0a0e1c] px-5 py-2 md:px-8" aria-label="Workspace views">{([{id:"overview",label:"Overview"},{id:"records",label:"All records"},{id:"insights",label:"Insights"}] as const).map((tab) => <button key={tab.id} onClick={() => setActiveView(tab.id)} className="rounded-lg px-4 py-2.5 text-xs font-medium transition" style={{background:activeView===tab.id?"rgba(255,255,255,.09)":"transparent",color:activeView===tab.id?"#fff":"#94a3b8"}}>{tab.label}</button>)}</nav>
+        <div className="grid grid-cols-2 gap-3 border-b border-white/10 bg-[#0c1020] p-4 md:grid-cols-4 md:px-8">
           {[
             ["Total", stats.total],
             ["Pending", stats.open],
@@ -202,25 +204,27 @@ export function FeatureDrawer({
           ))}
         </div>
 
-        <div className="flex-1 space-y-4 overflow-y-auto p-5">
-          <div className="flex items-center gap-2">
-            <input className="input !py-2" placeholder="Filter records…" value={q} onChange={(e) => setQ(e.target.value)} />
+        <div className="flex-1 space-y-5 overflow-y-auto bg-[#080b16] p-5 md:p-8">
+          {activeView !== "insights" && <div className="flex flex-col gap-3 rounded-2xl border border-white/[0.08] bg-[#0d1222] p-4 sm:flex-row sm:items-center"><div className="min-w-0 flex-1"><div className="text-sm font-semibold text-white">{activeView === "overview" ? "Your activity" : "All records"}</div><p className="mt-1 text-xs text-slate-500">Search, filter and manage work in this workspace.</p></div><div className="flex items-center gap-2">
+            <input className="input !min-w-0 !py-2" placeholder="Search records…" value={q} onChange={(e) => setQ(e.target.value)} />
             <button
               onClick={() => { setShowForm((v) => !v); setEditing(null); setForm(EMPTY); setPayload({}); }}
               className="flex shrink-0 items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110"
-              style={{ background: `linear-gradient(110deg, ${color}, #6366f1)`, boxShadow: `0 0 24px ${color}66` }}
+              style={{ background: color }}
             >
-              <motion.span animate={{ rotate: showForm ? 45 : 0 }}><Plus size={16} /></motion.span> New
+              <Plus size={16} /> Add new
             </button>
-          </div>
+          </div></div>}
 
-          <div className="flex flex-wrap gap-1.5">
+          {activeView === "insights" ? <div className="grid gap-4 md:grid-cols-2"><div className="rounded-2xl border border-white/10 bg-[#0d1222] p-5"><div className="text-xs text-slate-500">Completion rate</div><div className="mt-2 text-3xl font-bold text-white">{stats.total ? Math.round(stats.done / stats.total * 100) : 0}%</div><div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full" style={{width: (stats.total ? stats.done / stats.total * 100 : 0) + "%",background:color}} /></div><p className="mt-3 text-xs text-slate-500">{stats.done} completed of {stats.total} total records</p></div><div className="rounded-2xl border border-white/10 bg-[#0d1222] p-5"><div className="text-xs text-slate-500">Open work</div><div className="mt-2 text-3xl font-bold text-white">{stats.open}</div><p className="mt-3 text-xs text-slate-500">Items that still need attention</p></div></div> : null}
+
+          {activeView !== "insights" && <div className="flex flex-wrap gap-1.5">
             {[{ id: "all", label: "All", color }, ...STATUSES].map((s) => (
               <button key={s.id} onClick={() => setFilter(s.id)} className="rounded-full px-3 py-1 text-xs transition" style={{ background: filter === s.id ? `${s.color}33` : "rgba(255,255,255,0.05)", color: filter === s.id ? s.color : "#94a3b8", boxShadow: filter === s.id ? `0 0 14px ${s.color}44` : undefined }}>
                 {s.label}
               </button>
             ))}
-          </div>
+          </div>}
 
           <AnimatePresence>
             {showForm && (
@@ -256,7 +260,7 @@ export function FeatureDrawer({
             )}
           </AnimatePresence>
 
-          {loading ? (
+          {activeView !== "insights" && (loading ? (
             <div className="grid place-items-center py-16 text-slate-500"><Loader2 className="animate-spin" /></div>
           ) : rows.length === 0 ? (
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="rounded-3xl border border-dashed border-white/15 p-10 text-center">
@@ -313,7 +317,7 @@ export function FeatureDrawer({
               </AnimatePresence>
               {shown.length === 0 && <p className="py-8 text-center text-sm text-slate-500">No records match.</p>}
             </ul>
-          )}
+          ))}
         </div>
       </motion.aside>
     </>
