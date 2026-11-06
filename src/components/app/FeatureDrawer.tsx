@@ -167,8 +167,8 @@ export function FeatureDrawer({
         animate={fullPage ? { opacity: 1, y: 0 } : { x: 0 }}
         exit={fullPage ? { opacity: 0 } : { x: "100%" }}
         transition={{ type: "spring", stiffness: 280, damping: 32 }}
-        className={fullPage ? "relative mx-auto flex min-h-[calc(100vh-120px)] w-full max-w-[1500px] flex-col overflow-hidden rounded-3xl border border-white/10 bg-[#080a18]" : "fixed inset-y-0 right-0 z-[61] flex w-full max-w-2xl flex-col border-l border-white/10 bg-[#080a18] shadow-[-30px_0_100px_rgba(0,0,0,0.6)]"}
-        style={{ boxShadow: `-20px 0 100px -20px ${color}55` }}
+        className={fullPage ? "relative -mx-4 -my-4 flex min-h-[calc(100vh-72px)] w-[calc(100%+2rem)] max-w-none flex-col overflow-visible rounded-none border-0 bg-transparent shadow-none md:-mx-8 md:w-[calc(100%+4rem)]" : "fixed inset-y-0 right-0 z-[61] flex w-full max-w-2xl flex-col border-l border-white/10 bg-[#080a18] shadow-[-30px_0_100px_rgba(0,0,0,0.6)]"}
+        style={{ boxShadow: fullPage ? "none" : `-20px 0 100px -20px ${color}55` }}
       >
         <div className="relative overflow-hidden border-b border-white/10 p-6" style={{ background: `linear-gradient(120deg, ${color}2e, transparent)` }}>
           {!fullPage && <button onClick={onClose} className="absolute right-4 top-4 rounded-xl p-2 text-slate-400 transition hover:bg-white/10 hover:text-white" aria-label="Close"><X size={18} /></button>}
