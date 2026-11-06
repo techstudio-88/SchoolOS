@@ -5,8 +5,7 @@ import { useEffect, useState } from "react";
 import { Clock3, Star } from "lucide-react";
 import { MODULE_MAP } from "@/lib/catalog";
 
-type Mod = { id: string; title: string };
-export function WorkspaceShortcuts({ panelId, base, modules, pathname }: { panelId: string; base: string; modules: Mod[]; pathname: string }) {
+export function WorkspaceShortcuts({ panelId, base, pathname }: { panelId: string; base: string; pathname: string }) {
   const [pinned, setPinned] = useState<string[]>([]);
   const [recent, setRecent] = useState<string[]>([]);
   useEffect(() => {
