@@ -115,7 +115,7 @@ export function AppShell({
               </Link>
             );
           })}
-          {!collapsed && <WorkspaceShortcuts panelId={panel.id} base={base} modules={modules} pathname={pathname} />}
+          {!collapsed && <WorkspaceShortcuts panelId={panel.id} base={base} pathname={pathname} />}
           {!collapsed && (
             <div className="px-2 pb-2 pt-4">
               <div className="mb-2 flex items-center justify-between px-1">
