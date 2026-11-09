@@ -277,10 +277,32 @@ export function AppShell({
             </div>
           </header>
 
-          <main className="p-4 md:p-8">
+          <main className="p-4 pb-24 md:p-8 md:pb-8">
             <PageTransition k={pathname}>{children}</PageTransition>
           </main>
         </div>
+      </div>
+
+      {/* Native-app style quick navigation on phones */}
+      <nav aria-label="Quick navigation" className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#080b16]/95 px-2 pb-[max(env(safe-area-inset-bottom),8px)] pt-2 backdrop-blur-2xl lg:hidden">
+        <div className="mx-auto grid max-w-lg grid-cols-4 gap-1">
+          <Link href={base} className={`flex min-w-0 flex-col items-center gap-1 rounded-xl px-1 py-1.5 text-[10px] ${pathname === base ? "text-white" : "text-slate-500"}`}>
+            <LayoutDashboard size={19} style={{ color: pathname === base ? panel.color : undefined }} />
+            <span>Home</span>
+          </Link>
+          {modules.slice(0, 2).map((m) => {
+            const active = pathname.startsWith(`${base}/${m.id}`);
+            return <Link key={m.id} href={`${base}/${m.id}`} className={`flex min-w-0 flex-col items-center gap-1 rounded-xl px-1 py-1.5 text-[10px] ${active ? "text-white" : "text-slate-500"}`}>
+              <Icon name={m.icon} size={19} style={{ color: active ? m.color : undefined }} />
+              <span className="max-w-full truncate">{m.title.split(/[& ]/)[0]}</span>
+            </Link>;
+          })}
+          <button onClick={() => setMobile(true)} className="flex min-w-0 flex-col items-center gap-1 rounded-xl px-1 py-1.5 text-[10px] text-slate-500">
+            <Menu size={19} />
+            <span>All tools</span>
+          </button>
+        </div>
+      </nav>
       </div>
 
       <CommandPalette open={palette} onClose={() => setPalette(false)} panel={panel} modules={modules} onSwitch={switchPanel} />
