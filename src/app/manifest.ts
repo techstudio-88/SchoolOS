@@ -14,6 +14,6 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: "#080b16",
     theme_color: "#080b16",
     categories: ["education", "business", "productivity"],
-    icons: [{ src: "/schoolos-icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any maskable" }],
+    icons: [{ src: "/schoolos-icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" }],
   };
 }
