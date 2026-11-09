@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Inter, Space_Grotesk } from "next/font/google";
 import "./globals.css";
+import { PWASetup } from "@/components/PWASetup";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 const grotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-grotesk", display: "swap" });
@@ -19,7 +20,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} ${grotesk.variable}`}>
-      <body>{children}</body>
+      <body><PWASetup />{children}</body>
     </html>
   );
 }
