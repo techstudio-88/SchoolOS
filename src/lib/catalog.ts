@@ -72,7 +72,7 @@ export const TOTAL_FEATURES = ALL_FEATURES.length;
 export const PANELS: Panel[] = [
   {
     id: "owner", title: "Owner", tagline: "Business, growth and the big picture", icon: "Crown", color: "#d946ef", group: "Leadership",
-    modules: ["owner", "finance", "analytics", "governance", "marketing", "compliance", "fees", "ai"],
+    modules: ["owner", "admissions", "students", "attendance", "timetable", "syllabus", "lessons", "homework", "exams", "grading", "fees", "finance", "payroll", "hr", "leave", "recruit", "uniform", "inventory", "library", "transport", "hostel", "canteen", "health", "counselling", "discipline", "comms", "events", "sports", "labs", "elearn", "safety", "frontdesk", "facilities", "compliance", "analytics", "marketing", "pd", "sen", "scholarships", "it", "docs", "governance", "ai"],
   },
   {
     id: "principal", title: "Principal", tagline: "Academic leadership and school culture", icon: "School", color: "#8b5cf6", group: "Leadership",
