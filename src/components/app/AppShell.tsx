@@ -303,7 +303,6 @@ export function AppShell({
           </button>
         </div>
       </nav>
-      </div>
 
       <CommandPalette open={palette} onClose={() => setPalette(false)} panel={panel} modules={modules} onSwitch={switchPanel} />
     </div>
