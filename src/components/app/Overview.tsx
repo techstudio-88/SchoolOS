@@ -176,7 +176,7 @@ export function Overview({
                 const st = STATUSES.find((s) => s.id === r.status) ?? STATUSES[0];
                 return (
                   <motion.li key={r.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6 + i * 0.06 }}>
-                    <Link href={`/app/${panel.id}/${r.moduleId}?feature=${encodeURIComponent(r.featureKey)}`} className="flex items-center gap-3 py-3 transition hover:translate-x-1">
+                    <Link href={`/app/${panel.id}/${r.moduleId}/${encodeURIComponent(r.featureKey)}`} className="flex items-center gap-3 py-3 transition hover:translate-x-1">
                       <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: st.color, boxShadow: `0 0 10px ${st.color}` }} />
                       <span className="min-w-0 flex-1 truncate text-sm text-slate-200">{r.title}</span>
                       <span className="hidden text-xs text-slate-500 sm:block">{r.person}</span>
