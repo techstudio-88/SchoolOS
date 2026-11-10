@@ -343,3 +343,179 @@ select.input option {
 .schoolos-overview .schoolos-hero .border-white\/15 { border-color:#d8e3f3 !important; }
 .schoolos-feature .schoolos-panel { background:#fff !important; }
 .schoolos-feature input, .schoolos-feature textarea, .schoolos-feature select { color:#1e293b; }
+
+
+/* ---------- SchoolOS premium workspace polish v2 ---------- */
+.schoolos-app {
+  --so-ink: #17233d;
+  --so-muted: #71809a;
+  --so-line: #e5ebf5;
+  --so-surface: rgba(255,255,255,.92);
+  --so-shadow: 0 14px 42px rgba(58,82,130,.075);
+  color: var(--so-ink);
+  background:
+    radial-gradient(ellipse at 12% 0%, rgba(189,202,255,.34), transparent 34rem),
+    radial-gradient(ellipse at 95% 8%, rgba(169,228,255,.3), transparent 32rem),
+    linear-gradient(145deg,#f4f6ff 0%,#eef6ff 48%,#f7f9ff 100%);
+}
+.schoolos-app .schoolos-sidebar {
+  background: rgba(255,255,255,.94) !important;
+  border-color: #e4eaf4 !important;
+  box-shadow: 12px 0 42px rgba(45,67,112,.055);
+  backdrop-filter: blur(24px);
+}
+.schoolos-app .schoolos-sidebar nav { scrollbar-width: thin; scrollbar-color: #cbd5e7 transparent; }
+.schoolos-app .schoolos-sidebar nav > a,
+.schoolos-app .schoolos-sidebar nav > div > div:first-child {
+  border-radius: 13px;
+}
+.schoolos-app .schoolos-sidebar nav a { transition: background .18s ease, color .18s ease, transform .18s ease; }
+.schoolos-app .schoolos-sidebar nav a:hover { transform: translateX(2px); background: #f1f5ff !important; }
+.schoolos-app .schoolos-sidebar nav .text-white,
+.schoolos-app .schoolos-sidebar nav .text-slate-200,
+.schoolos-app .schoolos-sidebar nav .text-slate-300 { color: #34435e !important; }
+.schoolos-app .schoolos-sidebar nav .text-slate-400 { color: #7d8ba3 !important; }
+.schoolos-app .schoolos-sidebar nav .text-slate-500 { color: #8b98ad !important; }
+.schoolos-app .schoolos-sidebar nav [class*="border-l"] { border-color: #e7edf7 !important; }
+.schoolos-app .schoolos-sidebar nav input {
+  background: #f7f9fd !important;
+  border: 1px solid #e4eaf4 !important;
+  border-radius: 12px !important;
+  color: #263651 !important;
+}
+.schoolos-app .schoolos-sidebar nav input:focus {
+  background: white !important;
+  border-color: #a5b4fc !important;
+  box-shadow: 0 0 0 4px rgba(129,140,248,.12);
+}
+.schoolos-app .schoolos-topbar {
+  height: 76px;
+  background: rgba(249,251,255,.86) !important;
+  border-color: #e4eaf4 !important;
+  box-shadow: 0 5px 24px rgba(47,70,115,.035);
+}
+.schoolos-app .schoolos-topbar .text-white,
+.schoolos-app .schoolos-topbar .text-slate-200 { color: #24334e !important; }
+.schoolos-app .schoolos-topbar .text-slate-300 { color: #596982 !important; }
+.schoolos-app .schoolos-topbar .text-slate-400 { color: #7888a2 !important; }
+.schoolos-app .schoolos-topbar .glass {
+  background: rgba(255,255,255,.92) !important;
+  border: 1px solid #e5ebf5 !important;
+  box-shadow: 0 4px 16px rgba(52,75,120,.045);
+}
+.schoolos-app .schoolos-topbar .glass:hover {
+  border-color: #c7d2fe !important;
+  box-shadow: 0 8px 24px rgba(99,102,241,.10);
+}
+.schoolos-overview { gap: 24px; }
+.schoolos-overview-main { display:flex; flex-direction:column; gap:22px; }
+.schoolos-overview .schoolos-hero {
+  min-height: 260px;
+  border-radius: 28px !important;
+  padding: clamp(24px,3vw,38px) !important;
+  background:
+    radial-gradient(circle at 88% 8%,rgba(177,213,255,.45),transparent 17rem),
+    linear-gradient(120deg,#fff 0%,#f2f5ff 56%,#e9f8ff 100%) !important;
+  border: 1px solid #e2e9f6 !important;
+  box-shadow: 0 18px 55px rgba(80,105,157,.105) !important;
+}
+.schoolos-overview .schoolos-hero h1 { letter-spacing:-.045em; line-height:1.12; }
+.schoolos-overview .schoolos-hero .glass {
+  min-width: 168px;
+  border-radius: 22px !important;
+  background: rgba(255,255,255,.82) !important;
+  border: 1px solid #e2eaf6 !important;
+  box-shadow: 0 8px 28px rgba(80,105,157,.07);
+}
+.schoolos-overview .schoolos-stat {
+  min-height: 126px;
+  padding: 17px !important;
+  border-radius: 20px !important;
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.schoolos-overview .schoolos-stat:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 30px rgba(72,96,145,.10) !important;
+}
+.schoolos-overview .schoolos-stat [style*="text-shadow"] { text-shadow:none !important; }
+.schoolos-overview .schoolos-panel {
+  border-radius: 22px !important;
+  background: rgba(255,255,255,.9) !important;
+  border: 1px solid #e4eaf4 !important;
+  box-shadow: 0 8px 28px rgba(66,91,140,.055);
+}
+.schoolos-overview .schoolos-panel h2,
+.schoolos-overview .schoolos-panel h3 { letter-spacing:-.02em; }
+.schoolos-overview .schoolos-overview-rail { gap:14px; }
+.schoolos-overview .schoolos-overview-rail section { box-shadow: 0 8px 28px rgba(66,91,140,.055); }
+.schoolos-overview .schoolos-overview-rail a:hover { background:#f2f5ff !important; }
+.schoolos-overview .schoolos-overview-rail .bg-gradient-to-br { box-shadow: 0 10px 22px rgba(75,93,190,.16); }
+.schoolos-overview .schoolos-overview-main > section,
+.schoolos-overview .schoolos-overview-main > div { min-width:0; }
+.schoolos-feature {
+  overflow:hidden;
+  border:1px solid #e5ebf5;
+  border-radius:26px;
+  background:rgba(255,255,255,.76);
+  box-shadow:0 12px 38px rgba(58,82,130,.055);
+}
+.schoolos-feature > div:first-child {
+  padding:26px clamp(18px,3vw,34px) !important;
+  background:linear-gradient(120deg,#fff,#f3f6ff) !important;
+  border-bottom:1px solid #e5ebf5 !important;
+}
+.schoolos-feature > div:first-child h2 { letter-spacing:-.035em; }
+.schoolos-feature > nav {
+  padding:10px clamp(14px,2vw,28px) !important;
+  background:#fff !important;
+  border-bottom:1px solid #e8edf6 !important;
+}
+.schoolos-feature > nav button { border-radius:11px !important; }
+.schoolos-feature > div:nth-of-type(2) {
+  padding:14px clamp(14px,2vw,28px) !important;
+  background:#f8faff !important;
+  border-bottom:1px solid #e8edf6 !important;
+}
+.schoolos-feature > div:nth-of-type(2) > div {
+  border:1px solid #e8edf6;
+  background:#fff !important;
+  border-radius:15px !important;
+}
+.schoolos-feature > div:last-child { background:#f7f9fd !important; }
+.schoolos-feature .input,
+.schoolos-feature input,
+.schoolos-feature textarea,
+.schoolos-feature select {
+  border-radius:12px !important;
+  background:#fff !important;
+  border:1px solid #dfe7f2 !important;
+  color:#24334e !important;
+  box-shadow:0 1px 2px rgba(35,55,90,.025);
+}
+.schoolos-feature .input:focus,
+.schoolos-feature input:focus,
+.schoolos-feature textarea:focus,
+.schoolos-feature select:focus {
+  border-color:#a5b4fc !important;
+  box-shadow:0 0 0 4px rgba(129,140,248,.12) !important;
+}
+.schoolos-app button, .schoolos-app a { -webkit-tap-highlight-color:transparent; }
+.schoolos-app button:focus-visible,
+.schoolos-app a:focus-visible,
+.schoolos-app input:focus-visible {
+  outline:3px solid rgba(99,102,241,.32);
+  outline-offset:2px;
+}
+@media (max-width: 1023px) {
+  .schoolos-overview { gap:18px; }
+  .schoolos-app .schoolos-topbar { height:66px; }
+}
+@media (max-width: 640px) {
+  .schoolos-overview { gap:16px; }
+  .schoolos-overview .schoolos-hero { min-height:0; padding:22px !important; border-radius:22px !important; }
+  .schoolos-overview .schoolos-hero h1 { font-size:clamp(28px,8vw,38px); }
+  .schoolos-overview .schoolos-hero .glass { align-self:flex-start; }
+  .schoolos-overview .schoolos-stat { min-height:108px; padding:13px !important; }
+  .schoolos-feature { border-radius:18px; }
+  .schoolos-feature > div:first-child { padding:20px 16px !important; }
+}
