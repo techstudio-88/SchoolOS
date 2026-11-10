@@ -45,6 +45,20 @@ export function AppShell({
 
   useEffect(() => setMobile(false), [pathname]);
   useEffect(() => {
+    try {
+      setCollapsed(window.localStorage.getItem("schoolos_sidebar_collapsed") === "1");
+    } catch {
+      // Sidebar state remains available for this session if storage is blocked.
+    }
+  }, []);
+  useEffect(() => {
+    try {
+      window.localStorage.setItem("schoolos_sidebar_collapsed", collapsed ? "1" : "0");
+    } catch {
+      // Storage can be disabled by the browser; navigation still works normally.
+    }
+  }, [collapsed]);
+  useEffect(() => {
     let active = true;
     const refresh = async () => {
       try {
