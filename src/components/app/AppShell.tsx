@@ -14,7 +14,7 @@ import { WorkspaceShortcuts } from "@/components/app/WorkspaceShortcuts";
 
 type PanelLite = { id: string; title: string; tagline: string; icon: string; color: string };
 type ModLite = { id: string; title: string; icon: string; color: string; count: number; features: number };
-type Notice = { id: number | string; title: string; body: string; kind?: string };
+type Notice = { id: number | string; title: string; body: string; kind?: string; href?: string; moduleTitle?: string };
 
 export function AppShell({
   panel,
@@ -46,11 +46,17 @@ export function AppShell({
   useEffect(() => setMobile(false), [pathname]);
   useEffect(() => {
     let active = true;
-    const refresh = () => fetch("/api/notifications", { cache: "no-store" })
-      .then((r) => r.ok ? r.json() : null)
-      .then((data) => { if (active && data?.notifications) setActivityNotices(data.notifications); })
-      .catch(() => {});
-    refresh();
+    const refresh = async () => {
+      try {
+        const response = await fetch("/api/notifications", { cache: "no-store" });
+        if (!response.ok) return;
+        const data = await response.json();
+        if (active && Array.isArray(data?.notifications)) setActivityNotices(data.notifications);
+      } catch {
+        // Keep the last successful notification snapshot when the network is unavailable.
+      }
+    };
+    void refresh();
     const interval = window.setInterval(refresh, 60_000);
     return () => { active = false; window.clearInterval(interval); };
   }, [pathname]);
@@ -254,13 +260,14 @@ export function AppShell({
                 {allNotices.length > 0 && <span className="absolute right-1.5 top-1.5 h-2 w-2 animate-pulse rounded-full bg-pink-500 shadow-[0_0_10px_#ec4899]" />}
               </button>
               <Dropdown open={menu === "bell"} close={() => setMenu(null)} className="w-80 p-3">
-                <div className="mb-2 text-xs font-semibold uppercase tracking-widest text-slate-500">Platform notices</div>
+                <div className="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-widest text-slate-500"><span>Notifications</span><span className="rounded-full bg-white/10 px-2 py-1 tabular-nums">{allNotices.length}</span></div>
                 {allNotices.length === 0 && <p className="p-3 text-sm text-slate-500">You&apos;re all caught up ✨</p>}
                 {allNotices.map((n) => (
-                  <div key={n.id} className="mb-2 rounded-xl bg-white/5 p-3">
-                    <div className="text-sm font-medium text-white">{n.title}</div>
+                  <Link key={n.id} href={n.href ?? base} onClick={() => setMenu(null)} className="mb-2 block rounded-xl bg-white/5 p-3 transition hover:bg-white/10">
+                    <div className="flex items-center gap-2"><span className={`h-2 w-2 shrink-0 rounded-full ${n.kind === "overdue" ? "bg-rose-400" : "bg-amber-300"}`} /><div className="text-sm font-medium text-white">{n.title}</div></div>
                     {n.body && <div className="mt-1 text-xs text-slate-400">{n.body}</div>}
-                  </div>
+                    {n.moduleTitle && <div className="mt-2 text-[10px] uppercase tracking-wider text-slate-500">{n.moduleTitle} · Open workspace</div>}
+                  </Link>
                 ))}
               </Dropdown>
             </div>
