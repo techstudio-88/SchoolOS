@@ -46,10 +46,13 @@ export function AppShell({
   useEffect(() => setMobile(false), [pathname]);
   useEffect(() => {
     let active = true;
-    fetch("/api/notifications", { cache: "no-store" }).then((r) => r.ok ? r.json() : null).then((data) => {
-      if (active && data?.notifications) setActivityNotices(data.notifications);
-    }).catch(() => {});
-    return () => { active = false; };
+    const refresh = () => fetch("/api/notifications", { cache: "no-store" })
+      .then((r) => r.ok ? r.json() : null)
+      .then((data) => { if (active && data?.notifications) setActivityNotices(data.notifications); })
+      .catch(() => {});
+    refresh();
+    const interval = window.setInterval(refresh, 60_000);
+    return () => { active = false; window.clearInterval(interval); };
   }, [pathname]);
   useEffect(() => {
     const activeModule = pathname.split("/")[3];
