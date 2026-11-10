@@ -56,14 +56,19 @@ export function FeatureDrawer({
 
   const load = useCallback(async () => {
     setLoading(true);
-    const res = await fetch(`/api/records?feature=${encodeURIComponent(feature.key)}`, { cache: "no-store" });
-    if (res.ok) {
+    setErr("");
+    try {
+      const res = await fetch(`/api/records?feature=${encodeURIComponent(feature.key)}`, { cache: "no-store" });
+      if (!res.ok) throw new Error(res.status === 403 ? "You do not have access to this workspace." : "Could not load records. Please try again.");
       const j = await res.json();
-      setRows(j.records);
-      setEnabled(j.enabled);
-      onChange(j.records.length, j.enabled);
+      setRows(Array.isArray(j.records) ? j.records : []);
+      setEnabled(Boolean(j.enabled));
+      onChange(Array.isArray(j.records) ? j.records.length : 0, Boolean(j.enabled));
+    } catch (error) {
+      setErr(error instanceof Error ? error.message : "Could not load records.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [feature.key]);
 
@@ -98,43 +103,75 @@ export function FeatureDrawer({
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.title.trim()) return setErr("Please add a title.");
+    const missing = fields.find((field) => field.required && !String(payload[field.key] ?? "").trim());
+    if (missing) return setErr(`Please complete: ${missing.label}.`);
     setErr("");
     setSaving(true);
-    const body = { ...form, amount: Number(form.amount) || 0, payload, feature: feature.key };
-    const res = await fetch(editing ? `/api/records/${editing}` : "/api/records", {
-      method: editing ? "PATCH" : "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    if (res.ok) {
-      const { record } = await res.json();
-      const next = editing ? rows.map((r) => (r.id === editing ? record : r)) : [record, ...rows];
+    try {
+      const body = { ...form, amount: Number(form.amount) || 0, payload, feature: feature.key };
+      const res = await fetch(editing ? `/api/records/${editing}` : "/api/records", {
+        method: editing ? "PATCH" : "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.record) throw new Error(data.error ?? "Could not save this record. Please try again.");
+      const next = editing ? rows.map((r) => (r.id === editing ? data.record : r)) : [data.record, ...rows];
       setRows(next);
       onChange(next.length, enabled);
       setForm(EMPTY);
+      setPayload({});
       setEditing(null);
       setShowForm(false);
-    } else setErr("Could not save. Try again.");
-    setSaving(false);
+    } catch (error) {
+      setErr(error instanceof Error ? error.message : "Could not save this record.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function setStatus(r: Rec, status: string) {
+    setErr("");
     setRows((rs) => rs.map((x) => (x.id === r.id ? { ...x, status } : x)));
-    await fetch(`/api/records/${r.id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status }) });
+    try {
+      const response = await fetch(`/api/records/${r.id}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ status }) });
+      if (!response.ok) throw new Error("Status could not be updated. Your list has been refreshed.");
+    } catch (error) {
+      setRows((rs) => rs.map((x) => (x.id === r.id ? r : x)));
+      setErr(error instanceof Error ? error.message : "Status could not be updated.");
+    }
   }
 
   async function remove(r: Rec) {
+    if (!window.confirm(`Delete “${r.title}”? This cannot be undone.`)) return;
+    const previous = rows;
     const next = rows.filter((x) => x.id !== r.id);
     setRows(next);
     onChange(next.length, enabled);
-    await fetch(`/api/records/${r.id}`, { method: "DELETE" });
+    setErr("");
+    try {
+      const response = await fetch(`/api/records/${r.id}`, { method: "DELETE" });
+      if (!response.ok) throw new Error("This record could not be deleted.");
+    } catch (error) {
+      setRows(previous);
+      onChange(previous.length, enabled);
+      setErr(error instanceof Error ? error.message : "This record could not be deleted.");
+    }
   }
 
   async function toggle() {
+    const previous = enabled;
     const v = !enabled;
     setEnabled(v);
     onChange(rows.length, v);
-    await fetch("/api/features/toggle", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ feature: feature.key, enabled: v }) });
+    try {
+      const response = await fetch("/api/features/toggle", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ feature: feature.key, enabled: v }) });
+      if (!response.ok) throw new Error("Feature setting could not be saved.");
+    } catch (error) {
+      setEnabled(previous);
+      onChange(rows.length, previous);
+      setErr(error instanceof Error ? error.message : "Feature setting could not be saved.");
+    }
   }
 
   async function sample() {
