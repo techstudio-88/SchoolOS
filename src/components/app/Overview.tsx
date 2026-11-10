@@ -70,9 +70,9 @@ export function Overview({
   ];
 
   return (
-    <motion.div variants={container} initial="hidden" animate="show" className="mx-auto max-w-7xl space-y-6">
+    <motion.div variants={container} initial="hidden" animate="show" className="schoolos-overview mx-auto max-w-7xl space-y-6">
       {/* Hero */}
-      <motion.div variants={item} className="relative overflow-hidden rounded-[2rem] p-8 md:p-10" style={{ background: `linear-gradient(120deg, ${panel.color}38, #0a0c1c 55%, #22d3ee22)`, border: `1px solid ${panel.color}55`, boxShadow: `0 20px 80px -30px ${panel.color}` }}>
+      <motion.div variants={item} className="schoolos-hero relative overflow-hidden rounded-[2rem] p-8 md:p-10" style={{ background: `linear-gradient(120deg, ${panel.color}38, #0a0c1c 55%, #22d3ee22)`, border: `1px solid ${panel.color}55`, boxShadow: `0 20px 80px -30px ${panel.color}` }}>
         <Particles count={18} />
         <motion.div animate={{ rotate: 360 }} transition={{ duration: 40, repeat: Infinity, ease: "linear" }} className="absolute -right-24 -top-24 h-72 w-72 rounded-full border border-dashed border-white/15" />
         <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
@@ -81,7 +81,7 @@ export function Overview({
               <Icon name={panel.icon} size={14} style={{ color: panel.color }} /> {panel.title} panel
             </div>
             <h1 className="font-display text-3xl font-bold text-white md:text-5xl">
-              {greet}, <span className="text-gradient">{userName}</span>
+              {greet}, <span className="text-[#5367d9]">{userName}</span>
             </h1>
             <p className="mt-3 max-w-xl text-slate-300">{panel.tagline}. Everything below is live from your school&apos;s database.</p>
             <div className="mt-5 flex flex-wrap items-center gap-3">
@@ -94,7 +94,7 @@ export function Overview({
             </div>
           </div>
           <div className="glass rounded-3xl px-8 py-6 text-center">
-            <div className="font-display text-6xl font-bold" style={{ color: panel.color, textShadow: `0 0 40px ${panel.color}` }}>
+            <div className="font-display text-6xl font-bold" style={{ color: panel.color }}>
               <Counter to={featureCount} />
             </div>
             <div className="mt-1 text-xs uppercase tracking-widest text-slate-400">capabilities in your panel</div>
@@ -116,7 +116,7 @@ export function Overview({
       <div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-6">
         {kpis.map((k) => (
           <motion.div key={k.label} variants={item}>
-            <GlowCard glow={k.color} className="rounded-2xl p-4">
+            <GlowCard glow={k.color} className="schoolos-stat rounded-2xl p-4">
               <div className="text-xs text-slate-400">{k.label}</div>
               <div className="font-display mt-1 text-3xl font-bold" style={{ color: k.color, textShadow: `0 0 24px ${k.color}88` }}>
                 <Counter to={k.value} prefix={k.prefix ?? ""} duration={1.6} />
@@ -130,7 +130,7 @@ export function Overview({
       {/* Charts */}
       <div className="grid gap-4 lg:grid-cols-[1.7fr_1fr]">
         <motion.div variants={item}>
-          <GlowCard glow={panel.color} className="rounded-3xl p-6">
+          <GlowCard glow={panel.color} className="schoolos-panel rounded-3xl p-6">
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <h3 className="font-display text-lg font-bold text-white">Activity — last 14 days</h3>
@@ -142,7 +142,7 @@ export function Overview({
           </GlowCard>
         </motion.div>
         <motion.div variants={item}>
-          <GlowCard glow="#22d3ee" className="h-full rounded-3xl p-6">
+          <GlowCard glow="#22d3ee" className="schoolos-panel h-full rounded-3xl p-6">
             <h3 className="font-display text-lg font-bold text-white">Work status</h3>
             <p className="mb-4 text-xs text-slate-500">Where everything stands right now</p>
             <div className="flex flex-col items-center gap-5 sm:flex-row lg:flex-col xl:flex-row">
@@ -166,7 +166,7 @@ export function Overview({
       
       {/* Recent */}
       <motion.div variants={item}>
-        <GlowCard glow="#ec4899" className="rounded-3xl p-6">
+        <GlowCard glow="#ec4899" className="schoolos-panel rounded-3xl p-6">
           <h3 className="font-display mb-4 text-lg font-bold text-white">Recent activity</h3>
           {data.recent.length === 0 ? (
             <p className="py-6 text-center text-sm text-slate-500">Nothing yet. Open any workspace and add your first record — or load demo data above.</p>
