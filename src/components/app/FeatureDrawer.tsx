@@ -305,7 +305,7 @@ export function FeatureDrawer({
         animate={fullPage ? { opacity: 1, y: 0 } : { x: 0 }}
         exit={fullPage ? { opacity: 0 } : { x: "100%" }}
         transition={{ type: "spring", stiffness: 280, damping: 32 }}
-        className={fullPage ? "relative -mx-4 -my-4 flex min-h-[calc(100vh-72px)] w-[calc(100%+2rem)] max-w-none flex-col overflow-visible rounded-none border-0 bg-transparent shadow-none md:-mx-8 md:w-[calc(100%+4rem)]" : "fixed inset-y-0 right-0 z-[61] flex w-full max-w-2xl flex-col border-l border-white/10 bg-[#080a18] shadow-[-30px_0_100px_rgba(0,0,0,0.6)]"}
+        className={fullPage ? "schoolos-feature relative -mx-4 -my-4 flex min-h-[calc(100vh-72px)] w-[calc(100%+2rem)] max-w-none flex-col overflow-visible rounded-none border-0 bg-transparent shadow-none md:-mx-8 md:w-[calc(100%+4rem)]" : "schoolos-feature fixed inset-y-0 right-0 z-[61] flex w-full max-w-2xl flex-col border-l border-white/10 bg-[#080a18] shadow-[-30px_0_100px_rgba(0,0,0,0.6)]"}
         style={{ boxShadow: fullPage ? "none" : `-20px 0 100px -20px ${color}55` }}
       >
         <div className="border-b border-white/10 bg-[#0c1020] px-5 py-6 md:px-8">
