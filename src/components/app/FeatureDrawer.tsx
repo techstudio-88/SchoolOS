@@ -145,12 +145,18 @@ export function FeatureDrawer({
   }
 
   function exportCsv() {
-    const esc = (v: string | number) => `"${String(v).replace(/"/g, '""')}"`;
-    const csv = [["Title", "Person", "Amount", "Due", "Status", "Notes"].join(","), ...rows.map((r) => [r.title, r.person, r.amount, r.dueDate, r.status, r.notes].map(esc).join(","))].join("\n");
+    const esc = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const payloadKeys = fields.map((field) => field.key).filter((key) => rows.some((row) => row.payload?.[key] !== undefined && row.payload?.[key] !== ""));
+    const columns = ["Title", "Assigned person", "Amount (INR)", "Due date", "Status", "Notes", ...payloadKeys.map((key) => fields.find((field) => field.key === key)?.label ?? key)];
+    const csv = [columns.map(esc).join(","), ...rows.map((r) => [
+      r.title, r.person, r.amount, r.dueDate, r.status, r.notes, ...payloadKeys.map((key) => r.payload?.[key] ?? ""),
+    ].map(esc).join(","))].join("\n");
+    const blobUrl = URL.createObjectURL(new Blob(["\\uFEFF", csv], { type: "text/csv;charset=utf-8" }));
     const a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    a.href = blobUrl;
     a.download = `${feature.key}.csv`;
     a.click();
+    URL.revokeObjectURL(blobUrl);
   }
 
   function startEdit(r: Rec) {
@@ -298,7 +304,7 @@ export function FeatureDrawer({
                         </button>
                         <div className="min-w-0 flex-1">
                           <div className={`text-sm font-medium ${r.status === "done" ? "text-slate-500 line-through" : "text-white"}`}>{r.title}</div>
-                          {r.payload && Object.entries(r.payload).filter(([, v]) => v !== "" && v !== null && v !== undefined).length > 0 && <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1.5 border-t border-white/[0.06] pt-2">{Object.entries(r.payload).filter(([, v]) => v !== "" && v !== null && v !== undefined).slice(0, 8).map(([k, v]) => <div key={k} className="min-w-0"><dt className="truncate text-[9px] uppercase tracking-wider text-slate-600">{k.replace(/([A-Z])/g, " $1")}</dt><dd className="truncate text-xs text-slate-300">{String(v)}</dd></div>)}</dl>}
+                          {r.payload && Object.entries(r.payload).filter(([, v]) => v !== "" && v !== null && v !== undefined).length > 0 && <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1.5 border-t border-white/[0.06] pt-2">{Object.entries(r.payload).filter(([, v]) => v !== "" && v !== null && v !== undefined).slice(0, 8).map(([k, v]) => <div key={k} className="min-w-0"><dt className="truncate text-[9px] uppercase tracking-wider text-slate-600">{fields.find((field) => field.key === k)?.label ?? k.replace(/([A-Z])/g, " $1")}</dt><dd className="truncate text-xs text-slate-300">{String(v)}</dd></div>)}</dl>}
                           <div className="mt-1 flex flex-wrap gap-x-3 text-xs text-slate-500">
                             {r.person && <span>👤 {r.person}</span>}
                             {r.dueDate && <span className={overdue ? "font-semibold text-rose-400" : ""}>📅 {r.dueDate}{overdue ? " · overdue" : ""}</span>}
