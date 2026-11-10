@@ -4,6 +4,7 @@ import { db, featureSettings, records } from "@/db";
 import { FEATURE_MAP, SAMPLE_PEOPLE } from "@/lib/catalog";
 import { getSession } from "@/lib/session";
 import { PANEL_MAP } from "@/lib/catalog";
+import { findTimetableConflict } from "@/lib/timetable";
 
 export const dynamic = "force-dynamic";
 
@@ -60,6 +61,13 @@ export async function POST(req: Request) {
 
   const title = String(b.title ?? "").trim().slice(0, 160);
   if (!title) return NextResponse.json({ error: "title required" }, { status: 400 });
+  const payload = (b.payload && typeof b.payload === "object" && !Array.isArray(b.payload)) ? b.payload as Record<string, string | number | boolean | null> : {};
+  if (feature.moduleId === "timetable") {
+    const existing = await db.select({ id: records.id, payload: records.payload }).from(records)
+      .where(and(eq(records.schoolId, session.schoolId), eq(records.moduleId, "timetable")));
+    const conflict = findTimetableConflict(payload, existing);
+    if (conflict) return NextResponse.json({ error: conflict.message, conflict: conflict.type }, { status: 409 });
+  }
   const [row] = await db
     .insert(records)
     .values({
@@ -72,7 +80,7 @@ export async function POST(req: Request) {
       dueDate: String(b.dueDate ?? "").slice(0, 10),
       status: STATUS.includes(String(b.status)) ? String(b.status) : "open",
       notes: String(b.notes ?? "").slice(0, 1000),
-      payload: (b.payload && typeof b.payload === "object" && !Array.isArray(b.payload)) ? b.payload as Record<string, string | number | boolean | null> : {},
+      payload,
     })
     .returning();
   return NextResponse.json({ record: row });
