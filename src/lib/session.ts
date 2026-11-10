@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { createHash, timingSafeEqual } from "crypto";
+import { createHash, createHmac, timingSafeEqual } from "crypto";
 import { eq } from "drizzle-orm";
 import { db, schools } from "@/db";
 import { PANEL_MAP } from "./catalog";
@@ -38,8 +38,14 @@ export async function getSession(): Promise<Session | null> {
   const raw = store.get(SESSION_COOKIE)?.value;
   if (!raw) return null;
   try {
-    const s = JSON.parse(Buffer.from(raw, "base64url").toString("utf8")) as Session;
-    if (!PANEL_MAP[s.role] || typeof s.schoolId !== "number") return null;
+    const [payload, signature] = raw.split(".");
+    const secret = process.env.SESSION_SECRET || process.env.SUPER_ADMIN_KEY || "";
+    if (!payload || !signature || !secret) return null;
+    const expected = createHmac("sha256", secret).update(payload).digest();
+    const supplied = Buffer.from(signature, "base64url");
+    if (supplied.length !== expected.length || !timingSafeEqual(supplied, expected)) return null;
+    const s = JSON.parse(Buffer.from(payload, "base64url").toString("utf8")) as Session;
+    if (!PANEL_MAP[s.role] || typeof s.schoolId !== "number" || !Number.isInteger(s.schoolId)) return null;
     return s;
   } catch {
     return null;
@@ -47,7 +53,11 @@ export async function getSession(): Promise<Session | null> {
 }
 
 export function encodeSession(s: Session) {
-  return Buffer.from(JSON.stringify(s), "utf8").toString("base64url");
+  const secret = process.env.SESSION_SECRET || process.env.SUPER_ADMIN_KEY || "";
+  if (!secret) throw new Error("SESSION_SECRET or SUPER_ADMIN_KEY is required to sign sessions");
+  const payload = Buffer.from(JSON.stringify(s), "utf8").toString("base64url");
+  const signature = createHmac("sha256", secret).update(payload).digest("base64url");
+  return `${payload}.${signature}`;
 }
 
 /* ---------- Hidden super-admin (platform owner only) ---------- */
