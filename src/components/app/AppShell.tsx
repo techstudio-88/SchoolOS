@@ -342,6 +342,7 @@ function CommandPalette({ open, onClose, panel, modules, onSwitch }: { open: boo
   const router = useRouter();
   const [q, setQ] = useState("");
   const [idx, setIdx] = useState(0);
+  const [recordResults, setRecordResults] = useState<Array<{id:number;title:string;person:string;status:string;dueDate:string;moduleTitle:string;href:string}>>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
   type Item = { id: string; label: string; hint: string; icon: string; color: string; run: () => void };
@@ -371,7 +372,19 @@ function CommandPalette({ open, onClose, panel, modules, onSwitch }: { open: boo
       setTimeout(() => inputRef.current?.focus(), 50);
     }
   }, [open]);
-  useEffect(() => setIdx(0), [q]);
+  useEffect(() => {
+    setIdx(0);
+    if (!open || q.trim().length < 2) { setRecordResults([]); return; }
+    let cancelled = false;
+    const timer = window.setTimeout(async () => {
+      try {
+        const response = await fetch(`/api/search?q=${encodeURIComponent(q.trim())}`, { cache: "no-store" });
+        const data = response.ok ? await response.json() : { results: [] };
+        if (!cancelled) setRecordResults(data.results ?? []);
+      } catch { if (!cancelled) setRecordResults([]); }
+    }, 220);
+    return () => { cancelled = true; window.clearTimeout(timer); };
+  }, [q, open]);
 
   const go = (i: Item | undefined) => {
     if (!i) return;
@@ -409,6 +422,14 @@ function CommandPalette({ open, onClose, panel, modules, onSwitch }: { open: boo
                     <span className="flex-1 text-sm text-white">{r.label}</span>
                     <span className="text-xs text-slate-500">{r.hint}</span>
                     {i === idx && <CornerDownLeft size={14} className="text-slate-400" />}
+                  </button>
+                ))}
+                {recordResults.length > 0 && <div className="px-3 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">Matching school records</div>}
+                {recordResults.map((record) => (
+                  <button key={`record-${record.id}`} onClick={() => { onClose(); router.push(record.href); }} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition hover:bg-white/[0.08]">
+                    <span className="grid h-8 w-8 place-items-center rounded-lg bg-cyan-400/10 text-cyan-300"><Search size={15} /></span>
+                    <span className="min-w-0 flex-1"><span className="block truncate text-sm text-white">{record.title}</span><span className="block truncate text-[11px] text-slate-500">{record.moduleTitle}{record.person ? ` · ${record.person}` : ""}{record.dueDate ? ` · due ${record.dueDate}` : ""}</span></span>
+                    <span className="text-[10px] capitalize text-slate-500">{record.status.replace("_"," ")}</span>
                   </button>
                 ))}
               </div>
