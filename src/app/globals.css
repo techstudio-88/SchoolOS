@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #05060f;
-  --bg2: #0a0c1c;
-  --card: rgba(255, 255, 255, 0.04);
-  --border: rgba(255, 255, 255, 0.09);
+  --bg: #eef4ff;
+  --bg2: #e6efff;
+  --card: rgba(255, 255, 255, 0.78);
+  --border: rgba(148, 163, 184, 0.22);
   --violet: #8b5cf6;
   --cyan: #22d3ee;
   --pink: #ec4899;
@@ -29,12 +29,12 @@
 
 html {
   scroll-behavior: smooth;
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 body {
-  background: var(--bg);
-  color: #e8eaf6;
+  background: linear-gradient(135deg, #eaf0ff 0%, #e8f5ff 48%, #dff4ff 100%);
+  color: #17233d;
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
@@ -256,4 +256,48 @@ select.input option {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+
+/* SchoolOS light workspace — soft lavender/blue glass interface */
+.schoolos-app { color: #17233d; }
+.schoolos-app .schoolos-sidebar { background: rgba(255,255,255,.88) !important; border-color: #dce5f3 !important; box-shadow: 10px 0 40px rgba(71,95,140,.06); }
+.schoolos-app .schoolos-topbar { background: rgba(248,251,255,.88) !important; border-color: #dce5f3 !important; }
+.schoolos-app .schoolos-mobile-nav { background: rgba(255,255,255,.96) !important; border-color: #dce5f3 !important; }
+.schoolos-app .schoolos-main { color: #17233d; }
+.schoolos-app .schoolos-sidebar input { background:#f4f7fd !important; border-color:#e1e8f3 !important; color:#334155 !important; }
+.schoolos-app .schoolos-sidebar input::placeholder { color:#94a3b8 !important; }
+.schoolos-app .schoolos-sidebar .text-white,
+.schoolos-app .schoolos-topbar .text-white { color:#1e293b !important; }
+.schoolos-app .schoolos-sidebar .text-slate-300,
+.schoolos-app .schoolos-topbar .text-slate-300 { color:#475569 !important; }
+.schoolos-app .schoolos-sidebar .text-slate-400,
+.schoolos-app .schoolos-topbar .text-slate-400 { color:#64748b !important; }
+.schoolos-app .schoolos-sidebar .text-slate-500,
+.schoolos-app .schoolos-topbar .text-slate-500 { color:#7c8ba3 !important; }
+.schoolos-app .schoolos-sidebar [class*="hover:bg-white"]:hover,
+.schoolos-app .schoolos-topbar [class*="hover:bg-white"]:hover { background:rgba(99,124,170,.09) !important; }
+.schoolos-app .schoolos-topbar .glass { background:#fff !important; border:1px solid #e2eaf5 !important; box-shadow:0 4px 16px rgba(54,82,130,.05); }
+.schoolos-overview { color:#1e293b; }
+.schoolos-overview .text-white { color:#1e293b !important; }
+.schoolos-overview .text-slate-300 { color:#52627b !important; }
+.schoolos-overview .text-slate-400 { color:#64748b !important; }
+.schoolos-overview .text-slate-500 { color:#8290a6 !important; }
+.schoolos-overview [class*="border-white"] { border-color:#e2eaf5 !important; }
+.schoolos-overview [class*="bg-white/"] { background:rgba(255,255,255,.76) !important; }
+.schoolos-overview .schoolos-hero { background:linear-gradient(115deg,#fff 0%,#f0f4ff 55%,#e3f6ff 100%) !important; border:1px solid #e1e9f6 !important; box-shadow:0 20px 60px rgba(93,119,170,.12) !important; }
+.schoolos-overview .schoolos-panel { background:rgba(255,255,255,.84) !important; border:1px solid #e3eaf5 !important; box-shadow:0 8px 28px rgba(79,102,148,.07); }
+.schoolos-overview .schoolos-stat { background:#fff !important; border:1px solid #e7edf6 !important; box-shadow:0 6px 20px rgba(70,94,140,.05); }
+.schoolos-feature { color:#1e293b; }
+.schoolos-feature .text-white { color:#1e293b !important; }
+.schoolos-feature .text-slate-300 { color:#52627b !important; }
+.schoolos-feature .text-slate-400 { color:#64748b !important; }
+.schoolos-feature .text-slate-500 { color:#8290a6 !important; }
+.schoolos-feature [class*="border-white"] { border-color:#e2eaf5 !important; }
+.schoolos-feature [class*="bg-[#"] { background:#fff !important; }
+.schoolos-feature [class*="bg-white/"] { background:#f7f9fd !important; }
+.schoolos-feature .input { background:#fff !important; color:#1e293b !important; border-color:#dce5f1 !important; }
+.schoolos-feature .input::placeholder { color:#94a3b8 !important; }
+@media (max-width: 1023px) {
+  .schoolos-app .schoolos-sidebar { box-shadow:18px 0 50px rgba(44,66,110,.15); }
 }
