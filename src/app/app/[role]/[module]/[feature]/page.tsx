@@ -17,7 +17,7 @@ export default async function FeaturePage({
   const feature = mod?.features.find((item) => item.key === featureKey);
   const session = await getSession();
 
-  if (!panel || !mod || !feature || !session || !panel.modules.includes(moduleId)) notFound();
+  if (!panel || !mod || !feature || !session || session.role !== role || !panel.modules.includes(moduleId)) notFound();
 
   return (
     <FeatureDrawer
