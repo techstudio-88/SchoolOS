@@ -176,9 +176,16 @@ export function FeatureDrawer({
 
   async function sample() {
     setSaving(true);
-    const res = await fetch("/api/records", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ feature: feature.key, sample: true }) });
-    if (res.ok) await load();
-    setSaving(false);
+    setErr("");
+    try {
+      const res = await fetch("/api/records", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ feature: feature.key, sample: true }) });
+      if (!res.ok) throw new Error("Sample records could not be loaded. Please try again.");
+      await load();
+    } catch (error) {
+      setErr(error instanceof Error ? error.message : "Sample records could not be loaded.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   function exportCsv() {
