@@ -71,6 +71,7 @@ export function Overview({
 
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="schoolos-overview mx-auto max-w-7xl space-y-6">
+      <div className="schoolos-overview-main space-y-6">
       {/* Hero */}
       <motion.div variants={item} className="schoolos-hero relative overflow-hidden rounded-[2rem] p-8 md:p-10" style={{ background: `linear-gradient(120deg, ${panel.color}38, #0a0c1c 55%, #22d3ee22)`, border: `1px solid ${panel.color}55`, boxShadow: `0 20px 80px -30px ${panel.color}` }}>
         <Particles count={18} />
@@ -190,6 +191,32 @@ export function Overview({
           )}
         </GlowCard>
       </motion.div>
+      </div>
+      <aside className="schoolos-overview-rail space-y-4">
+        <section className="schoolos-panel rounded-[26px] p-5">
+          <div className="flex items-center gap-3">
+            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-indigo-100 to-sky-100 text-lg font-bold text-indigo-600">{userName.slice(0,1).toUpperCase()}</div>
+            <div className="min-w-0"><div className="truncate text-sm font-semibold text-slate-800">{userName}</div><div className="text-xs text-slate-500">{panel.title}</div></div>
+          </div>
+          <div className="my-4 h-px bg-slate-100" />
+          <div className="text-xs font-semibold text-slate-700">Your school at a glance</div>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <div className="rounded-2xl bg-indigo-50 p-3"><div className="text-xl font-bold text-indigo-700">{total.toLocaleString("en-IN")}</div><div className="text-[10px] text-indigo-500">Records</div></div>
+            <div className="rounded-2xl bg-sky-50 p-3"><div className="text-xl font-bold text-sky-700">{featureCount.toLocaleString("en-IN")}</div><div className="text-[10px] text-sky-600">Tools</div></div>
+          </div>
+        </section>
+        <section className="schoolos-panel rounded-[26px] p-5">
+          <div className="mb-3 flex items-center justify-between"><h3 className="text-sm font-semibold text-slate-800">Quick access</h3><Sparkles size={15} className="text-indigo-400" /></div>
+          <div className="space-y-1">
+            {modules.slice(0,5).map((m) => <Link key={m.id} href={`/app/${panel.id}/${m.id}`} className="flex items-center gap-3 rounded-xl px-2 py-2.5 transition hover:bg-indigo-50"><span className="grid h-8 w-8 place-items-center rounded-xl" style={{background:`${m.color}18`,color:m.color}}><Icon name={m.icon} size={16}/></span><span className="min-w-0 flex-1 truncate text-xs font-medium text-slate-700">{m.title}</span><ArrowUpRight size={13} className="text-slate-400"/></Link>)}
+          </div>
+        </section>
+        <section className="schoolos-panel rounded-[26px] p-5">
+          <div className="mb-2 text-sm font-semibold text-slate-800">A little guidance</div>
+          <p className="text-xs leading-5 text-slate-500">Keep your school organised by reviewing attendance, fee follow-ups and upcoming academic work regularly.</p>
+          <div className="mt-4 rounded-2xl bg-gradient-to-br from-indigo-600 to-sky-500 p-4 text-white"><div className="text-xs font-semibold">SchoolOS workspace</div><div className="mt-1 text-[11px] text-white/80">One place for your school operations.</div></div>
+        </section>
+      </aside>
     </motion.div>
   );
 }
