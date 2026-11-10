@@ -150,7 +150,7 @@ export function AppShell({
         <div className="px-3">
           <div
             className="relative overflow-hidden rounded-2xl p-3"
-            style={{ background: `linear-gradient(135deg, ${panel.color}33, ${panel.color}08)`, border: `1px solid ${panel.color}55`, boxShadow: `0 0 30px ${panel.color}22` }}
+            style={{ background: `linear-gradient(135deg, #ffffff, ${panel.color}0c)`, border: `1px solid #e4eaf4`, boxShadow: "0 5px 18px rgba(68,91,135,.06)" }}
           >
             <div className="flex items-center gap-3">
               <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl" style={{ background: `${panel.color}33`, boxShadow: `0 0 20px ${panel.color}66` }}>
@@ -235,14 +235,14 @@ export function AppShell({
   );
 
   return (
-    <div className="relative min-h-screen">
+    <div className="schoolos-app relative min-h-screen">
       <div className="pointer-events-none fixed inset-0 -z-0">
         <div className="aurora absolute inset-0 opacity-40" />
         <motion.div animate={{ backgroundColor: panel.color }} transition={{ duration: 1.2 }} className="animate-blob absolute -right-40 -top-40 h-[34rem] w-[34rem] opacity-[0.12] blur-[130px]" />
       </div>
 
       {/* Desktop sidebar */}
-      <aside style={{ width: w }} className="fixed inset-y-0 left-0 z-40 hidden border-r border-white/[0.07] bg-[#070916]/80 backdrop-blur-xl transition-[width] duration-300 ease-out lg:block">
+      <aside style={{ width: w }} className="schoolos-sidebar fixed inset-y-0 left-0 z-40 hidden border-r border-white/[0.07] bg-[#070916]/80 backdrop-blur-xl transition-[width] duration-300 ease-out lg:block">
         {Sidebar}
       </aside>
 
@@ -251,7 +251,7 @@ export function AppShell({
         {mobile && (
           <>
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setMobile(false)} className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm lg:hidden" />
-            <motion.aside initial={{ x: -320 }} animate={{ x: 0 }} exit={{ x: -320 }} transition={{ type: "spring", stiffness: 300, damping: 32 }} className="fixed inset-y-0 left-0 z-50 w-72 border-r border-white/10 bg-[#070916] lg:hidden">
+            <motion.aside initial={{ x: -320 }} animate={{ x: 0 }} exit={{ x: -320 }} transition={{ type: "spring", stiffness: 300, damping: 32 }} className="schoolos-sidebar fixed inset-y-0 left-0 z-50 w-72 border-r border-white/10 bg-[#070916] lg:hidden">
               <button onClick={() => setMobile(false)} className="absolute right-3 top-5 z-10 text-slate-400"><X size={20} /></button>
               {Sidebar}
             </motion.aside>
@@ -262,7 +262,7 @@ export function AppShell({
       <div className="relative z-10 min-w-0">
         <div className={`min-h-screen transition-[margin] duration-300 ease-out ${collapsed ? "lg:ml-[84px]" : "lg:ml-72"}`}>
           {/* Topbar */}
-          <header className="sticky top-0 z-30 flex h-[72px] items-center gap-3 border-b border-white/[0.07] bg-[#05060f]/70 px-4 backdrop-blur-xl md:px-8">
+          <header className="schoolos-topbar sticky top-0 z-30 flex h-[72px] items-center gap-3 border-b border-white/[0.07] bg-[#05060f]/70 px-4 backdrop-blur-xl md:px-8">
             <button onClick={() => setMobile(true)} className="rounded-xl p-2 text-slate-300 hover:bg-white/5 lg:hidden" aria-label="Open menu"><Menu size={20} /></button>
             <button onClick={() => setCollapsed((v) => !v)} className="hidden rounded-xl p-2 text-slate-400 transition hover:bg-white/5 hover:text-white lg:block" aria-label="Collapse sidebar">
               {collapsed ? <ChevronsRight size={18} /> : <ChevronsLeft size={18} />}
@@ -334,14 +334,14 @@ export function AppShell({
             </div>
           </header>
 
-          <main className="p-4 pb-24 md:p-8 md:pb-8">
+          <main className="schoolos-main p-4 pb-24 md:p-8 md:pb-8">
             <PageTransition k={pathname}>{children}</PageTransition>
           </main>
         </div>
       </div>
 
       {/* Native-app style quick navigation on phones */}
-      <nav aria-label="Quick navigation" className="fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#080b16]/95 px-2 pb-[max(env(safe-area-inset-bottom),8px)] pt-2 backdrop-blur-2xl lg:hidden">
+      <nav aria-label="Quick navigation" className="schoolos-mobile-nav fixed inset-x-0 bottom-0 z-40 border-t border-white/10 bg-[#080b16]/95 px-2 pb-[max(env(safe-area-inset-bottom),8px)] pt-2 backdrop-blur-2xl lg:hidden">
         <div className="mx-auto grid max-w-lg grid-cols-4 gap-1">
           <Link href={base} className={`flex min-w-0 flex-col items-center gap-1 rounded-xl px-1 py-1.5 text-[10px] ${pathname === base ? "text-white" : "text-slate-500"}`}>
             <LayoutDashboard size={19} style={{ color: pathname === base ? panel.color : undefined }} />
