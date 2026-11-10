@@ -40,6 +40,9 @@ export function AppShell({
   const [expandedModule, setExpandedModule] = useState<string | null>(null);
   const [sidebarQuery, setSidebarQuery] = useState("");
   const [activityNotices, setActivityNotices] = useState<Notice[]>([]);
+  const [desktopAlerts, setDesktopAlerts] = useState(false);
+  const notificationSnapshotLoaded = useRef(false);
+  const seenNotificationIds = useRef(new Set<string>());
   const allNotices = [...activityNotices, ...notices];
   const base = `/app/${panel.id}`;
 
@@ -74,6 +77,28 @@ export function AppShell({
     const interval = window.setInterval(refresh, 60_000);
     return () => { active = false; window.clearInterval(interval); };
   }, [pathname]);
+  useEffect(() => {
+    if ("Notification" in window) setDesktopAlerts(Notification.permission === "granted");
+  }, []);
+  useEffect(() => {
+    if (!notificationSnapshotLoaded.current) {
+      activityNotices.forEach((notice) => seenNotificationIds.current.add(String(notice.id)));
+      notificationSnapshotLoaded.current = true;
+      return;
+    }
+    activityNotices.forEach((notice) => {
+      const id = String(notice.id);
+      if (seenNotificationIds.current.has(id)) return;
+      seenNotificationIds.current.add(id);
+      if (!desktopAlerts || !("Notification" in window) || Notification.permission !== "granted") return;
+      const alert = new Notification(notice.title, { body: notice.body || "SchoolOS has an update for you." });
+      alert.onclick = () => {
+        window.focus();
+        if (notice.href) router.push(notice.href);
+        alert.close();
+      };
+    });
+  }, [activityNotices, desktopAlerts, router]);
   useEffect(() => {
     const activeModule = pathname.split("/")[3];
     setExpandedModule(activeModule && MODULE_MAP[activeModule] ? activeModule : null);
@@ -275,6 +300,10 @@ export function AppShell({
               </button>
               <Dropdown open={menu === "bell"} close={() => setMenu(null)} className="w-80 p-3">
                 <div className="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-widest text-slate-500"><span>Notifications</span><span className="rounded-full bg-white/10 px-2 py-1 tabular-nums">{allNotices.length}</span></div>
+                <button type="button" disabled={!("Notification" in window)} onClick={async () => { const permission = await Notification.requestPermission(); setDesktopAlerts(permission === "granted"); }} className="mb-3 flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-left text-xs text-slate-300 disabled:opacity-40">
+                  <span>{desktopAlerts ? "Desktop alerts enabled" : "Enable desktop alerts"}<span className="mt-0.5 block text-[10px] text-slate-500">Alerts appear while SchoolOS is open</span></span>
+                  <span className={`rounded-full px-2 py-1 ${desktopAlerts ? "bg-emerald-400/15 text-emerald-300" : "bg-white/10 text-slate-400"}`}>{desktopAlerts ? "On" : "Off"}</span>
+                </button>
                 {allNotices.length === 0 && <p className="p-3 text-sm text-slate-500">You&apos;re all caught up ✨</p>}
                 {allNotices.map((n) => (
                   <Link key={n.id} href={n.href ?? base} onClick={() => setMenu(null)} className="mb-2 block rounded-xl bg-white/5 p-3 transition hover:bg-white/10">
