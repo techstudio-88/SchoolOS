@@ -4,6 +4,7 @@ import { db, records } from "@/db";
 import { getSession } from "@/lib/session";
 import { PANEL_MAP } from "@/lib/catalog";
 import { findTimetableConflict } from "@/lib/timetable";
+import { findTimetableConflict } from "@/lib/timetable";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +36,17 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   if (b.amount !== undefined) patch.amount = Math.max(0, Math.min(2_000_000_000, Number(b.amount) || 0));
   if (typeof b.status === "string" && STATUS.includes(b.status)) patch.status = b.status;
   if (b.payload && typeof b.payload === "object" && !Array.isArray(b.payload)) patch.payload = b.payload as Record<string, string | number | boolean | null>;
+  if (patch.payload && typeof patch.payload === "object") {
+    const current = await db.select({ id: records.id, moduleId: records.moduleId }).from(records)
+      .where(and(eq(records.id, id), eq(records.schoolId, session.schoolId), inArray(records.moduleId, allowedModules))).limit(1);
+    if (!current[0]) return NextResponse.json({ error: "not found" }, { status: 404 });
+    if (current[0].moduleId === "timetable") {
+      const existing = await db.select({ id: records.id, payload: records.payload }).from(records)
+        .where(and(eq(records.schoolId, session.schoolId), eq(records.moduleId, "timetable")));
+      const conflict = findTimetableConflict(patch.payload, existing, id);
+      if (conflict) return NextResponse.json({ error: conflict.message, conflict: conflict.type }, { status: 409 });
+    }
+  }
   if (!Object.keys(patch).length) return NextResponse.json({ error: "nothing to update" }, { status: 400 });
   const [row] = await db
     .update(records)
