@@ -50,6 +50,8 @@ export function FeatureDrawer({
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [filter, setFilter] = useState("all");
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [bulkBusy, setBulkBusy] = useState(false);
   const [activeView, setActiveView] = useState<"overview" | "records" | "insights">("overview");
   const [q, setQ] = useState("");
   const [err, setErr] = useState("");
@@ -156,6 +158,52 @@ export function FeatureDrawer({
       setRows(previous);
       onChange(previous.length, enabled);
       setErr(error instanceof Error ? error.message : "This record could not be deleted.");
+    }
+  }
+
+  function toggleSelected(id: number, checked: boolean) {
+    setSelectedIds((current) => checked ? (current.includes(id) ? current : [...current, id]) : current.filter((value) => value !== id));
+  }
+
+  async function bulkSetStatus(status: string) {
+    if (!selectedIds.length) return;
+    setBulkBusy(true);
+    setErr("");
+    try {
+      const results = await Promise.all(selectedIds.map((id) => fetch(`/api/records/${id}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ status }),
+      })));
+      if (results.some((response) => !response.ok)) throw new Error("Some records could not be updated. The list has been refreshed.");
+      setRows((current) => current.map((row) => selectedIds.includes(row.id) ? { ...row, status } : row));
+      setSelectedIds([]);
+    } catch (error) {
+      setErr(error instanceof Error ? error.message : "Bulk update failed.");
+      await load();
+      setSelectedIds([]);
+    } finally {
+      setBulkBusy(false);
+    }
+  }
+
+  async function bulkDelete() {
+    if (!selectedIds.length || !window.confirm(`Delete ${selectedIds.length} selected records? This cannot be undone.`)) return;
+    setBulkBusy(true);
+    setErr("");
+    try {
+      const results = await Promise.all(selectedIds.map((id) => fetch(`/api/records/${id}`, { method: "DELETE" })));
+      if (results.some((response) => !response.ok)) throw new Error("Some records could not be deleted. The list has been refreshed.");
+      const next = rows.filter((row) => !selectedIds.includes(row.id));
+      setRows(next);
+      onChange(next.length, enabled);
+      setSelectedIds([]);
+    } catch (error) {
+      setErr(error instanceof Error ? error.message : "Bulk delete failed.");
+      await load();
+      setSelectedIds([]);
+    } finally {
+      setBulkBusy(false);
     }
   }
 
@@ -269,6 +317,14 @@ export function FeatureDrawer({
 
           {activeView === "insights" ? <div className="grid gap-4 md:grid-cols-2"><div className="rounded-2xl border border-white/10 bg-[#0d1222] p-5"><div className="text-xs text-slate-500">Completion rate</div><div className="mt-2 text-3xl font-bold text-white">{stats.total ? Math.round(stats.done / stats.total * 100) : 0}%</div><div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full" style={{width: (stats.total ? stats.done / stats.total * 100 : 0) + "%",background:color}} /></div><p className="mt-3 text-xs text-slate-500">{stats.done} completed of {stats.total} total records</p></div><div className="rounded-2xl border border-white/10 bg-[#0d1222] p-5"><div className="text-xs text-slate-500">Open work</div><div className="mt-2 text-3xl font-bold text-white">{stats.open}</div><p className="mt-3 text-xs text-slate-500">Items that still need attention</p></div></div> : null}
 
+          {selectedIds.length > 0 && <div className="flex flex-wrap items-center gap-2 rounded-xl border border-violet-400/20 bg-violet-500/10 p-3">
+            <span className="mr-auto text-xs font-semibold text-violet-100">{selectedIds.length} selected</span>
+            <select aria-label="Set status for selected records" className="input !w-auto !py-2 text-xs" defaultValue="" disabled={bulkBusy} onChange={(event) => { if (event.target.value) void bulkSetStatus(event.target.value); event.target.value = ""; }}>
+              <option value="">Change status…</option>{STATUSES.map((status) => <option key={status.id} value={status.id}>{status.label}</option>)}
+            </select>
+            <button type="button" disabled={bulkBusy} onClick={() => void bulkDelete()} className="rounded-lg border border-rose-400/25 px-3 py-2 text-xs text-rose-200 hover:bg-rose-500/10 disabled:opacity-50">{bulkBusy ? "Working…" : "Delete selected"}</button>
+            <button type="button" disabled={bulkBusy} onClick={() => setSelectedIds([])} className="rounded-lg px-2 py-2 text-xs text-slate-400 hover:text-white">Clear</button>
+          </div>}
           {activeView !== "insights" && <div className="flex flex-wrap gap-1.5">
             {[{ id: "all", label: "All", color }, ...STATUSES].map((s) => (
               <button key={s.id} onClick={() => setFilter(s.id)} className="rounded-full px-3 py-1 text-xs transition" style={{ background: filter === s.id ? `${s.color}33` : "rgba(255,255,255,0.05)", color: filter === s.id ? s.color : "#94a3b8", boxShadow: filter === s.id ? `0 0 14px ${s.color}44` : undefined }}>
@@ -339,6 +395,7 @@ export function FeatureDrawer({
                       className="group rounded-2xl border border-white/[0.08] bg-white/[0.03] p-3.5 transition hover:border-white/20 hover:bg-white/[0.05]"
                     >
                       <div className="flex items-start gap-3">
+                        <input type="checkbox" aria-label={`Select ${r.title}`} checked={selectedIds.includes(r.id)} onChange={(event) => toggleSelected(r.id, event.target.checked)} className="mt-1 h-4 w-4 shrink-0 accent-violet-400" />
                         <button
                           onClick={() => setStatus(r, STATUSES[(STATUSES.findIndex((s) => s.id === r.status) + 1) % STATUSES.length].id)}
                           title="Click to change status"
