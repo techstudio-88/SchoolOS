@@ -10,7 +10,7 @@ export default async function RoleOverview({ params }: { params: Promise<{ role:
   const { role } = await params;
   const panel = PANEL_MAP[role];
   const session = await getSession();
-  if (!panel || !session) notFound();
+  if (!panel || !session || session.role !== role) notFound();
   const data = await overviewData(session.schoolId, panel.modules);
   const mods = panel.modules.map((id) => MODULE_MAP[id]).filter(Boolean);
   return (
