@@ -69,7 +69,13 @@ export function AppShell({
         const response = await fetch("/api/notifications", { cache: "no-store" });
         if (!response.ok) return;
         const data = await response.json();
-        if (active && Array.isArray(data?.notifications)) setActivityNotices(data.notifications);
+        if (active && Array.isArray(data?.notifications)) {
+          if (!notificationSnapshotLoaded.current) {
+            data.notifications.forEach((notice: Notice) => seenNotificationIds.current.add(String(notice.id)));
+            notificationSnapshotLoaded.current = true;
+          }
+          setActivityNotices(data.notifications);
+        }
       } catch {
         // Keep the last successful notification snapshot when the network is unavailable.
       }
@@ -83,11 +89,7 @@ export function AppShell({
     if ("Notification" in window) setDesktopAlerts(Notification.permission === "granted");
   }, []);
   useEffect(() => {
-    if (!notificationSnapshotLoaded.current) {
-      activityNotices.forEach((notice) => seenNotificationIds.current.add(String(notice.id)));
-      notificationSnapshotLoaded.current = true;
-      return;
-    }
+    if (!notificationSnapshotLoaded.current) return;
     activityNotices.forEach((notice) => {
       const id = String(notice.id);
       if (seenNotificationIds.current.has(id)) return;
