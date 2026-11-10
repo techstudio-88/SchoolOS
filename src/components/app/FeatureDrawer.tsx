@@ -96,6 +96,42 @@ export function FeatureDrawer({
     };
   }, [rows]);
 
+  const insights = useMemo(() => {
+    const metrics: { label: string; value: string; hint: string }[] = [];
+    if (moduleId === "attendance") {
+      const count = (value: string) => rows.filter((row) => String(row.payload?.attendance ?? "").toLowerCase() === value).length;
+      metrics.push(
+        { label: "Present", value: String(count("present")), hint: "Attendance entries marked present" },
+        { label: "Absent", value: String(count("absent")), hint: "Entries needing follow-up" },
+        { label: "Late", value: String(count("late")), hint: "Late arrivals recorded" },
+      );
+    } else if (moduleId === "fees") {
+      const collected = rows.reduce((sum, row) => sum + row.amount, 0);
+      const modes = new Set(rows.map((row) => String(row.payload?.paymentMode ?? "")).filter(Boolean)).size;
+      metrics.push(
+        { label: "Recorded collections", value: `₹${collected.toLocaleString("en-IN")}`, hint: "Sum of amounts entered in this workspace" },
+        { label: "Payment methods", value: String(modes), hint: "Different payment methods used" },
+        { label: "Payment entries", value: String(rows.length), hint: "Recorded fee transactions" },
+      );
+    } else if (moduleId === "exams" || moduleId === "grading") {
+      const marked = rows.filter((row) => Number(row.payload?.maxMarks) > 0 && Number.isFinite(Number(row.payload?.marks)));
+      const average = marked.length ? marked.reduce((sum, row) => sum + Number(row.payload?.marks) / Number(row.payload?.maxMarks) * 100, 0) / marked.length : 0;
+      metrics.push(
+        { label: "Assessments", value: String(rows.length), hint: "Exam and assessment records" },
+        { label: "Marks entered", value: String(marked.length), hint: "Records with marks and maximum marks" },
+        { label: "Average score", value: marked.length ? `${Math.round(average)}%` : "—", hint: "Average across records with marks" },
+      );
+    } else if (moduleId === "students") {
+      const classes = new Set(rows.map((row) => String(row.payload?.class ?? "")).filter(Boolean));
+      metrics.push(
+        { label: "Student records", value: String(rows.length), hint: "Profiles in this workspace" },
+        { label: "Classes represented", value: String(classes.size), hint: "Distinct classes recorded" },
+        { label: "Open follow-ups", value: String(rows.filter((row) => row.status !== "done").length), hint: "Profiles with work still open" },
+      );
+    }
+    return metrics;
+  }, [rows, moduleId]);
+
   const shown = rows.filter(
     (r) =>
       (filter === "all" || r.status === filter) &&
@@ -315,7 +351,13 @@ export function FeatureDrawer({
             </button>
           </div></div>}
 
-          {activeView === "insights" ? <div className="grid gap-4 md:grid-cols-2"><div className="rounded-2xl border border-white/10 bg-[#0d1222] p-5"><div className="text-xs text-slate-500">Completion rate</div><div className="mt-2 text-3xl font-bold text-white">{stats.total ? Math.round(stats.done / stats.total * 100) : 0}%</div><div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full" style={{width: (stats.total ? stats.done / stats.total * 100 : 0) + "%",background:color}} /></div><p className="mt-3 text-xs text-slate-500">{stats.done} completed of {stats.total} total records</p></div><div className="rounded-2xl border border-white/10 bg-[#0d1222] p-5"><div className="text-xs text-slate-500">Open work</div><div className="mt-2 text-3xl font-bold text-white">{stats.open}</div><p className="mt-3 text-xs text-slate-500">Items that still need attention</p></div></div> : null}
+          {activeView === "insights" ? <div className="space-y-4">
+            {insights.length > 0 && <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{insights.map((metric) => <div key={metric.label} className="rounded-2xl border border-white/10 bg-[#0d1222] p-5"><div className="text-xs text-slate-500">{metric.label}</div><div className="mt-2 break-words text-3xl font-bold text-white">{metric.value}</div><p className="mt-2 text-xs text-slate-500">{metric.hint}</p></div>)}</div>}
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="rounded-2xl border border-white/10 bg-[#0d1222] p-5"><div className="text-xs text-slate-500">Completion rate</div><div className="mt-2 text-3xl font-bold text-white">{stats.total ? Math.round(stats.done / stats.total * 100) : 0}%</div><div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full" style={{width: (stats.total ? stats.done / stats.total * 100 : 0) + "%",background:color}} /></div><p className="mt-3 text-xs text-slate-500">{stats.done} completed of {stats.total} total records</p></div>
+              <div className="rounded-2xl border border-white/10 bg-[#0d1222] p-5"><div className="text-xs text-slate-500">Open work</div><div className="mt-2 text-3xl font-bold text-white">{stats.open}</div><p className="mt-3 text-xs text-slate-500">Items that still need attention</p></div>
+            </div>
+          </div> : null}
 
           {selectedIds.length > 0 && <div className="flex flex-wrap items-center gap-2 rounded-xl border border-violet-400/20 bg-violet-500/10 p-3">
             <span className="mr-auto text-xs font-semibold text-violet-100">{selectedIds.length} selected</span>
