@@ -334,3 +334,12 @@ select.input option {
 @media (max-width: 560px) {
   .schoolos-overview-rail { grid-template-columns:minmax(0,1fr); }
 }
+
+.schoolos-app .aurora { background:radial-gradient(60% 50% at 15% 15%,rgba(173,190,255,.38),transparent 70%),radial-gradient(55% 55% at 85% 25%,rgba(145,220,255,.34),transparent 70%),radial-gradient(60% 60% at 50% 90%,rgba(198,205,255,.28),transparent 70%) !important; }
+.schoolos-app .schoolos-mobile-nav a { color:#64748b !important; }
+.schoolos-app .schoolos-mobile-nav a[aria-current="page"] { color:#3346a8 !important; }
+.schoolos-app .schoolos-sidebar .text-slate-600 { color:#94a3b8 !important; }
+.schoolos-overview .schoolos-hero .text-white\/80 { color:#64748b !important; }
+.schoolos-overview .schoolos-hero .border-white\/15 { border-color:#d8e3f3 !important; }
+.schoolos-feature .schoolos-panel { background:#fff !important; }
+.schoolos-feature input, .schoolos-feature textarea, .schoolos-feature select { color:#1e293b; }
