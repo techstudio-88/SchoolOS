@@ -41,6 +41,7 @@ export function AppShell({
   const [sidebarQuery, setSidebarQuery] = useState("");
   const [activityNotices, setActivityNotices] = useState<Notice[]>([]);
   const [desktopAlerts, setDesktopAlerts] = useState(false);
+  const [supportsNotifications, setSupportsNotifications] = useState(false);
   const notificationSnapshotLoaded = useRef(false);
   const seenNotificationIds = useRef(new Set<string>());
   const allNotices = [...activityNotices, ...notices];
@@ -78,6 +79,7 @@ export function AppShell({
     return () => { active = false; window.clearInterval(interval); };
   }, [pathname]);
   useEffect(() => {
+    setSupportsNotifications("Notification" in window);
     if ("Notification" in window) setDesktopAlerts(Notification.permission === "granted");
   }, []);
   useEffect(() => {
@@ -300,7 +302,7 @@ export function AppShell({
               </button>
               <Dropdown open={menu === "bell"} close={() => setMenu(null)} className="w-80 p-3">
                 <div className="mb-2 flex items-center justify-between text-xs font-semibold uppercase tracking-widest text-slate-500"><span>Notifications</span><span className="rounded-full bg-white/10 px-2 py-1 tabular-nums">{allNotices.length}</span></div>
-                <button type="button" disabled={!("Notification" in window)} onClick={async () => { const permission = await Notification.requestPermission(); setDesktopAlerts(permission === "granted"); }} className="mb-3 flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-left text-xs text-slate-300 disabled:opacity-40">
+                <button type="button" disabled={!supportsNotifications} onClick={async () => { const permission = await Notification.requestPermission(); setDesktopAlerts(permission === "granted"); }} className="mb-3 flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-left text-xs text-slate-300 disabled:opacity-40">
                   <span>{desktopAlerts ? "Desktop alerts enabled" : "Enable desktop alerts"}<span className="mt-0.5 block text-[10px] text-slate-500">Alerts appear while SchoolOS is open</span></span>
                   <span className={`rounded-full px-2 py-1 ${desktopAlerts ? "bg-emerald-400/15 text-emerald-300" : "bg-white/10 text-slate-400"}`}>{desktopAlerts ? "On" : "Off"}</span>
                 </button>
