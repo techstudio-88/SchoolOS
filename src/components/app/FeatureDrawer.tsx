@@ -215,8 +215,9 @@ export function FeatureDrawer({
       setRows((current) => current.map((row) => selectedIds.includes(row.id) ? { ...row, status } : row));
       setSelectedIds([]);
     } catch (error) {
-      setErr(error instanceof Error ? error.message : "Bulk update failed.");
+      const message = error instanceof Error ? error.message : "Bulk update failed.";
       await load();
+      setErr(message);
       setSelectedIds([]);
     } finally {
       setBulkBusy(false);
@@ -235,8 +236,9 @@ export function FeatureDrawer({
       onChange(next.length, enabled);
       setSelectedIds([]);
     } catch (error) {
-      setErr(error instanceof Error ? error.message : "Bulk delete failed.");
+      const message = error instanceof Error ? error.message : "Bulk delete failed.";
       await load();
+      setErr(message);
       setSelectedIds([]);
     } finally {
       setBulkBusy(false);
