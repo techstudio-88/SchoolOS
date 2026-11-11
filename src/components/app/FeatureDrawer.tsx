@@ -140,7 +140,6 @@ export function FeatureDrawer({
     } else if (moduleId === "timetable") {
       const classes = new Set(rows.map((row) => String(row.payload?.class ?? "")).filter(Boolean));
       const teachers = new Set(rows.map((row) => String(row.payload?.teacher ?? "")).filter(Boolean));
-      const periods = new Set(rows.map((row) => `${row.payload?.day ?? ""}-${row.payload?.period ?? ""}`).filter((value) => value !== "-"));
       metrics.push(
         { label: "Scheduled lessons", value: String(rows.length), hint: "Timetable entries recorded" },
         { label: "Classes covered", value: String(classes.size), hint: "Distinct classes in the timetable" },
