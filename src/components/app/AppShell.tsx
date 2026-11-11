@@ -407,9 +407,10 @@ function CommandPalette({ open, onClose, panel, modules, onSwitch }: { open: boo
     const items: Item[] = [];
     for (const m of modules) {
       const mod = MODULE_MAP[m.id];
+      if (!mod) continue;
       items.push({ id: `m-${m.id}`, label: m.title, hint: "Workspace", icon: m.icon, color: m.color, run: () => router.push(`/app/${panel.id}/${m.id}`) });
       for (const f of mod.features) {
-        items.push({ id: f.key, label: f.name, hint: m.title, icon: m.icon, color: m.color, run: () => router.push(`/app/${panel.id}/${m.id}/${encodeURIComponent(f.key)}`) });
+        items.push({ id: `f-${f.key}`, label: f.name, hint: m.title, icon: m.icon, color: m.color, run: () => router.push(`/app/${panel.id}/${m.id}/${encodeURIComponent(f.key)}`) });
       }
     }
     for (const p of PANELS) items.push({ id: `p-${p.id}`, label: `Switch to ${p.title} panel`, hint: "Panel", icon: p.icon, color: p.color, run: () => onSwitch(p.id) });
@@ -419,34 +420,53 @@ function CommandPalette({ open, onClose, panel, modules, onSwitch }: { open: boo
   const results = useMemo(() => {
     const s = q.trim().toLowerCase();
     if (!s) return all.filter((i) => i.id.startsWith("m-")).slice(0, 8).concat(all.filter((i) => i.id.startsWith("p-")).slice(0, 3));
-    return all.filter((i) => i.label.toLowerCase().includes(s) || i.hint.toLowerCase().includes(s)).slice(0, 40);
+    return all.filter((i) => i.label.toLowerCase().includes(s) || i.hint.toLowerCase().includes(s)).slice(0, 30);
   }, [q, all]);
 
   useEffect(() => {
     if (open) {
       setQ("");
       setIdx(0);
-      setTimeout(() => inputRef.current?.focus(), 50);
+      window.setTimeout(() => inputRef.current?.focus(), 50);
     }
   }, [open]);
   useEffect(() => {
     setIdx(0);
     if (!open || q.trim().length < 2) { setRecordResults([]); return; }
     let cancelled = false;
+    const controller = new AbortController();
     const timer = window.setTimeout(async () => {
       try {
-        const response = await fetch(`/api/search?q=${encodeURIComponent(q.trim())}`, { cache: "no-store" });
+        const response = await fetch(`/api/search?q=${encodeURIComponent(q.trim())}`, { cache: "no-store", signal: controller.signal });
         const data = response.ok ? await response.json() : { results: [] };
-        if (!cancelled) setRecordResults(data.results ?? []);
-      } catch { if (!cancelled) setRecordResults([]); }
+        if (!cancelled) setRecordResults(Array.isArray(data.results) ? data.results : []);
+      } catch {
+        if (!cancelled) setRecordResults([]);
+      }
     }, 220);
-    return () => { cancelled = true; window.clearTimeout(timer); };
+    return () => { cancelled = true; controller.abort(); window.clearTimeout(timer); };
   }, [q, open]);
 
-  const go = (i: Item | undefined) => {
-    if (!i) return;
+  const entries = useMemo(() => [
+    ...results.map((item) => ({ id: item.id, label: item.label, hint: item.hint, icon: item.icon, color: item.color, run: item.run })),
+    ...recordResults.map((record) => ({
+      id: `record-${record.id}`,
+      label: record.title,
+      hint: `Record · ${record.moduleTitle}${record.person ? ` · ${record.person}` : ""}${record.dueDate ? ` · due ${record.dueDate}` : ""}`,
+      icon: "Search",
+      color: "#0891b2",
+      run: () => router.push(record.href),
+    })),
+  ], [results, recordResults, router]);
+
+  useEffect(() => {
+    setIdx((current) => Math.min(current, Math.max(0, entries.length - 1)));
+  }, [entries.length]);
+
+  const go = (item: Item | undefined) => {
+    if (!item) return;
     onClose();
-    i.run();
+    item.run();
   };
 
   return (
@@ -462,33 +482,33 @@ function CommandPalette({ open, onClose, panel, modules, onSwitch }: { open: boo
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "ArrowDown") { e.preventDefault(); setIdx((v) => Math.min(results.length - 1, v + 1)); }
+                    if (e.key === "ArrowDown") { e.preventDefault(); setIdx((v) => Math.min(entries.length - 1, v + 1)); }
                     if (e.key === "ArrowUp") { e.preventDefault(); setIdx((v) => Math.max(0, v - 1)); }
-                    if (e.key === "Enter") go(results[idx]);
+                    if (e.key === "Enter") { e.preventDefault(); go(entries[idx]); }
                   }}
-                  placeholder="Search workspaces, features, panels…"
+                  placeholder="Search workspaces, features, panels and school records…"
+                  aria-label="Search SchoolOS"
+                  aria-controls="schoolos-command-results"
+                  aria-activedescendant={entries[idx] ? `schoolos-command-${entries[idx].id}` : undefined}
                   className="w-full bg-transparent py-4 text-base text-white outline-none placeholder:text-slate-500"
                 />
                 <kbd className="rounded-md bg-white/10 px-2 py-1 text-[10px] text-slate-400">ESC</kbd>
               </div>
-              <div className="max-h-[50vh] overflow-y-auto p-2">
-                {results.length === 0 && <p className="p-8 text-center text-sm text-slate-500">Nothing found for “{q}”.</p>}
-                {results.map((r, i) => (
-                  <button key={r.id} onMouseEnter={() => setIdx(i)} onClick={() => go(r)} className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition ${i === idx ? "bg-white/[0.08]" : ""}`}>
-                    <span className="grid h-8 w-8 place-items-center rounded-lg" style={{ background: `${r.color}2a` }}><Icon name={r.icon} size={16} style={{ color: r.color }} /></span>
-                    <span className="flex-1 text-sm text-white">{r.label}</span>
-                    <span className="text-xs text-slate-500">{r.hint}</span>
-                    {i === idx && <CornerDownLeft size={14} className="text-slate-400" />}
+              <div id="schoolos-command-results" role="listbox" aria-label="Search results" className="max-h-[58vh] overflow-y-auto p-2">
+                {entries.length === 0 && <p className="p-8 text-center text-sm text-slate-500">{q.trim().length < 2 ? "Start typing to search all workspaces and features." : `Nothing found for “${q}”.`}</p>}
+                {entries.map((item, i) => (
+                  <button id={`schoolos-command-${item.id}`} key={item.id} role="option" aria-selected={i === idx} onMouseEnter={() => setIdx(i)} onClick={() => go(item)} className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition ${i === idx ? "bg-white/[0.10] ring-1 ring-violet-300/20" : "hover:bg-white/[0.06]"}`}>
+                    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg" style={{ background: `${item.color}22` }}><Icon name={item.icon} size={16} style={{ color: item.color }} /></span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm text-white">{item.label}</span>
+                      <span className="block truncate text-[11px] text-slate-500">{item.hint}</span>
+                    </span>
+                    {i === idx && <CornerDownLeft size={14} className="shrink-0 text-slate-400" />}
                   </button>
                 ))}
-                {recordResults.length > 0 && <div className="px-3 pb-1 pt-3 text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-500">Matching school records</div>}
-                {recordResults.map((record) => (
-                  <button key={`record-${record.id}`} onClick={() => { onClose(); router.push(record.href); }} className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition hover:bg-white/[0.08]">
-                    <span className="grid h-8 w-8 place-items-center rounded-lg bg-cyan-400/10 text-cyan-300"><Search size={15} /></span>
-                    <span className="min-w-0 flex-1"><span className="block truncate text-sm text-white">{record.title}</span><span className="block truncate text-[11px] text-slate-500">{record.moduleTitle}{record.person ? ` · ${record.person}` : ""}{record.dueDate ? ` · due ${record.dueDate}` : ""}</span></span>
-                    <span className="text-[10px] capitalize text-slate-500">{record.status.replace("_"," ")}</span>
-                  </button>
-                ))}
+              </div>
+              <div className="flex items-center justify-between border-t border-white/10 px-4 py-2 text-[10px] text-slate-500">
+                <span>↑ ↓ to navigate · Enter to open</span><span>{entries.length} results · Esc to close</span>
               </div>
             </div>
           </motion.div>
