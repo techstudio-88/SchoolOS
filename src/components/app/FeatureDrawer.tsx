@@ -423,7 +423,7 @@ export function FeatureDrawer({
 
         <div className="flex-1 space-y-5 overflow-y-auto bg-[#080b16] p-5 md:p-8">
           {err && !showForm && <div role="alert" className="rounded-xl border border-rose-400/25 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{err}</div>}
-          {activeView !== "insights" && <div className="flex flex-col gap-3 rounded-2xl border border-white/[0.08] bg-[#0d1222] p-4 sm:flex-row sm:items-center"><div className="min-w-0 flex-1"><div className="text-sm font-semibold text-white">{activeView === "overview" ? "Your activity" : "All records"}</div><p className="mt-1 text-xs text-slate-500">Search, filter and manage work in this workspace.</p></div><div className="flex items-center gap-2">
+          {(activeView === "overview" || activeView === "records") && <div className="flex flex-col gap-3 rounded-2xl border border-white/[0.08] bg-[#0d1222] p-4 sm:flex-row sm:items-center"><div className="min-w-0 flex-1"><div className="text-sm font-semibold text-white">{activeView === "overview" ? "Your activity" : "All records"}</div><p className="mt-1 text-xs text-slate-500">Search, filter and manage work in this workspace.</p></div><div className="flex items-center gap-2">
             <input className="input !min-w-0 !py-2" placeholder="Search records…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search records" />
             <select aria-label="Sort records" className="input !w-auto !min-w-[132px] !py-2 text-xs" value={sortBy} onChange={(e) => setSortBy(e.target.value as typeof sortBy)}>
               <option value="newest">Newest first</option>
@@ -494,7 +494,7 @@ export function FeatureDrawer({
             <button type="button" disabled={bulkBusy} onClick={() => void bulkDelete()} className="rounded-lg border border-rose-400/25 px-3 py-2 text-xs text-rose-200 hover:bg-rose-500/10 disabled:opacity-50">{bulkBusy ? "Working…" : "Delete selected"}</button>
             <button type="button" disabled={bulkBusy} onClick={() => setSelectedIds([])} className="rounded-lg px-2 py-2 text-xs text-slate-400 hover:text-white">Clear</button>
           </div>}
-          {activeView !== "insights" && <div className="flex flex-wrap gap-1.5">
+          {(activeView === "overview" || activeView === "records") && <div className="flex flex-wrap gap-1.5">
             {[{ id: "all", label: "All", color }, ...STATUSES].map((s) => (
               <button key={s.id} onClick={() => setFilter(s.id)} className="rounded-full px-3 py-1 text-xs transition" style={{ background: filter === s.id ? `${s.color}33` : "rgba(255,255,255,0.05)", color: filter === s.id ? s.color : "#94a3b8", boxShadow: filter === s.id ? `0 0 14px ${s.color}44` : undefined }}>
                 {s.label}
@@ -536,7 +536,7 @@ export function FeatureDrawer({
             )}
           </AnimatePresence>
 
-          {activeView !== "insights" && (loading ? (
+          {(activeView === "overview" || activeView === "records") && (loading ? (
             <div className="grid place-items-center py-16 text-slate-500"><Loader2 className="animate-spin" /></div>
           ) : rows.length === 0 ? (
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="rounded-3xl border border-dashed border-white/15 p-10 text-center">
