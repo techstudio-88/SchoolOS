@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
-  Bell, ChevronsLeft, ChevronsRight, CornerDownLeft, LayoutDashboard, LogOut, Menu, Repeat, Search, X,
+  Bell, ChevronsLeft, ChevronsRight, CornerDownLeft, LayoutDashboard, LogOut, Menu, Repeat, Search, X, Zap,
 } from "lucide-react";
 import { Icon } from "@/components/icons";
 import { Logo } from "@/components/landing/Hero";
@@ -276,6 +276,12 @@ export function AppShell({
               <span className="flex-1 text-left">Search {TOTAL_FEATURES}+ capabilities…</span>
               <kbd className="hidden rounded-md bg-white/10 px-1.5 py-0.5 text-[10px] md:block">⌘K</kbd>
             </button>
+
+            {panel.id === "owner" && (
+              <Link href={`${base}/automations`} className="glass flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm text-violet-700 transition hover:bg-violet-50" title="Automation studio">
+                <Zap size={16} /><span className="hidden md:block">Automations</span>
+              </Link>
+            )}
 
             <div className="relative">
               <button onClick={() => setMenu(menu === "panels" ? null : "panels")} className="glass flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm text-slate-200 transition hover:bg-white/10" title="Switch panel (demo)">
