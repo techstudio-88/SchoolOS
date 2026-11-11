@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Download, Loader2, Pencil, Plus, Sparkles, Trash2, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Loader2, Pencil, Plus, Sparkles, Trash2, X } from "lucide-react";
 import { Icon } from "@/components/icons";
 import { STATUSES } from "@/lib/catalog";
 import { getWorkflowFields } from "@/lib/workflow-fields";
@@ -54,7 +54,8 @@ export function FeatureDrawer({
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [expandedIds, setExpandedIds] = useState<number[]>([]);
   const [bulkBusy, setBulkBusy] = useState(false);
-  const [activeView, setActiveView] = useState<"overview" | "records" | "insights">("overview");
+  const [activeView, setActiveView] = useState<"overview" | "records" | "insights" | "calendar">("overview");
+  const [calendarMonth, setCalendarMonth] = useState(() => new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   const [q, setQ] = useState("");
   const [err, setErr] = useState("");
 
@@ -405,7 +406,7 @@ export function FeatureDrawer({
           </div>
         </div>
 
-        <nav className="flex flex-wrap items-center gap-1 border-b border-white/10 bg-[#0a0e1c] px-5 py-2 md:px-8" aria-label="Workspace views">{([{id:"overview",label:"Overview"},{id:"records",label:"All records"},{id:"insights",label:"Insights"}] as const).map((tab) => <button key={tab.id} onClick={() => setActiveView(tab.id)} className="rounded-lg px-4 py-2.5 text-xs font-medium transition" style={{background:activeView===tab.id?"rgba(255,255,255,.09)":"transparent",color:activeView===tab.id?"#fff":"#94a3b8"}}>{tab.label}</button>)}</nav>
+        <nav className="flex flex-wrap items-center gap-1 border-b border-white/10 bg-[#0a0e1c] px-5 py-2 md:px-8" aria-label="Workspace views">{([{id:"overview",label:"Overview"},{id:"records",label:"All records"},{id:"insights",label:"Insights"},...(moduleId === "events" ? [{id:"calendar" as const,label:"Calendar"}] : [])] as const).map((tab) => <button key={tab.id} onClick={() => setActiveView(tab.id)} className="rounded-lg px-4 py-2.5 text-xs font-medium transition" style={{background:activeView===tab.id?"rgba(255,255,255,.09)":"transparent",color:activeView===tab.id?"#fff":"#94a3b8"}}>{tab.label}</button>)}</nav>
         <div className="grid grid-cols-2 gap-3 border-b border-white/10 bg-[#0c1020] p-4 md:grid-cols-4 md:px-8">
           {[
             ["Total", stats.total],
@@ -439,6 +440,43 @@ export function FeatureDrawer({
               <Plus size={16} /> Add new
             </button>
           </div></div>}
+
+          {activeView === "calendar" && moduleId === "events" ? (() => {
+            const year = calendarMonth.getFullYear();
+            const month = calendarMonth.getMonth();
+            const firstDay = new Date(year, month, 1).getDay();
+            const dayCount = new Date(year, month + 1, 0).getDate();
+            const cells = [...Array(firstDay).fill(null), ...Array.from({ length: dayCount }, (_, index) => index + 1)];
+            const dateKey = (day: number) => `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+            const eventDate = (record: Rec) => String(record.payload?.eventDate ?? record.dueDate ?? "").slice(0, 10);
+            const todayKey = new Date().toLocaleDateString("en-CA");
+            return <section className="space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#0d1222] p-4">
+                <div><div className="text-xs text-slate-500">School events</div><h3 className="font-display text-xl font-bold text-white">{calendarMonth.toLocaleDateString("en-IN", { month: "long", year: "numeric" })}</h3></div>
+                <div className="flex items-center gap-2">
+                  <button type="button" aria-label="Previous month" onClick={() => setCalendarMonth(new Date(year, month - 1, 1))} className="rounded-xl border border-white/10 p-2 text-slate-300 hover:bg-white/10"><ChevronLeft size={17}/></button>
+                  <button type="button" onClick={() => setCalendarMonth(new Date(new Date().getFullYear(), new Date().getMonth(), 1))} className="rounded-xl border border-white/10 px-3 py-2 text-xs text-slate-300 hover:bg-white/10">Today</button>
+                  <button type="button" aria-label="Next month" onClick={() => setCalendarMonth(new Date(year, month + 1, 1))} className="rounded-xl border border-white/10 p-2 text-slate-300 hover:bg-white/10"><ChevronRight size={17}/></button>
+                </div>
+              </div>
+              <div className="grid grid-cols-7 gap-1.5">
+                {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((day) => <div key={day} className="py-2 text-center text-[10px] font-semibold uppercase tracking-wider text-slate-500">{day}</div>)}
+                {cells.map((day, index) => {
+                  if (!day) return <div key={`blank-${index}`} className="min-h-24 rounded-xl bg-white/[0.015] sm:min-h-28" />;
+                  const key = dateKey(day);
+                  const dayEvents = rows.filter((record) => eventDate(record) === key);
+                  return <div key={key} className={`min-h-24 overflow-hidden rounded-xl border p-1.5 sm:min-h-28 sm:p-2 ${key === todayKey ? "border-violet-400/50 bg-violet-500/10" : "border-white/[0.07] bg-white/[0.025]"}`}>
+                    <div className={`mb-1 text-xs font-semibold ${key === todayKey ? "text-violet-200" : "text-slate-400"}`}>{day}</div>
+                    <div className="space-y-1">
+                      {dayEvents.slice(0, 3).map((record) => <button key={record.id} type="button" onClick={() => { startEdit(record); setActiveView("overview"); }} title={record.title} className="block w-full truncate rounded-md px-1.5 py-1 text-left text-[10px] font-medium text-white" style={{ background: `${color}45` }}>{record.title}</button>)}
+                      {dayEvents.length > 3 && <div className="px-1 text-[9px] text-slate-500">+{dayEvents.length - 3} more</div>}
+                    </div>
+                  </div>;
+                })}
+              </div>
+              {rows.filter((record) => !eventDate(record)).length > 0 && <p className="text-xs text-slate-500">{rows.filter((record) => !eventDate(record)).length} event records have no date and are not placed on the calendar.</p>}
+            </section>;
+          })() : null}
 
           {activeView === "insights" ? <div className="space-y-4">
             {insights.length > 0 && <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{insights.map((metric) => <div key={metric.label} className="rounded-2xl border border-white/10 bg-[#0d1222] p-5"><div className="text-xs text-slate-500">{metric.label}</div><div className="mt-2 break-words text-3xl font-bold text-white">{metric.value}</div><p className="mt-2 text-xs text-slate-500">{metric.hint}</p></div>)}</div>}
