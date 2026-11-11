@@ -29,7 +29,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const auth = await ownerSession();
-  if (auth.error) return auth.error;
+  if (!auth.ok) return auth.response;
   const body = await req.json().catch(() => ({})) as Record<string, unknown>;
   const name = String(body.name ?? "").trim().slice(0, 80);
   const trigger = String(body.trigger ?? "");
@@ -47,7 +47,7 @@ export async function POST(req: Request) {
 
 export async function PATCH(req: Request) {
   const auth = await ownerSession();
-  if (auth.error) return auth.error;
+  if (!auth.ok) return auth.response;
   const body = await req.json().catch(() => ({})) as Record<string, unknown>;
   const id = Number(body.id);
   if (!Number.isInteger(id) || id < 1 || typeof body.enabled !== "boolean") {
@@ -63,7 +63,7 @@ export async function PATCH(req: Request) {
 
 export async function DELETE(req: Request) {
   const auth = await ownerSession();
-  if (auth.error) return auth.error;
+  if (!auth.ok) return auth.response;
   const id = Number(new URL(req.url).searchParams.get("id"));
   if (!Number.isInteger(id) || id < 1) return NextResponse.json({ error: "A valid rule ID is required." }, { status: 400 });
   const [rule] = await db.delete(automationRules)
