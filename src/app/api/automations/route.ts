@@ -7,16 +7,20 @@ export const dynamic = "force-dynamic";
 
 const TRIGGERS = ["attendance_absent", "fee_due", "event_soon", "leave_pending"] as const;
 
-async function ownerSession() {
+type OwnerAuth =
+  | { ok: true; session: NonNullable<Awaited<ReturnType<typeof getSession>>> }
+  | { ok: false; response: NextResponse };
+
+async function ownerSession(): Promise<OwnerAuth> {
   const session = await getSession();
-  if (!session) return { error: NextResponse.json({ error: "unauthorized" }, { status: 401 }) };
-  if (session.role !== "owner") return { error: NextResponse.json({ error: "Only the school owner can manage automations." }, { status: 403 }) };
-  return { session };
+  if (!session) return { ok: false, response: NextResponse.json({ error: "unauthorized" }, { status: 401 }) };
+  if (session.role !== "owner") return { ok: false, response: NextResponse.json({ error: "Only the school owner can manage automations." }, { status: 403 }) };
+  return { ok: true, session };
 }
 
 export async function GET() {
   const auth = await ownerSession();
-  if (auth.error) return auth.error;
+  if (!auth.ok) return auth.response;
   const rows = await db.select().from(automationRules)
     .where(eq(automationRules.schoolId, auth.session.schoolId))
     .orderBy(desc(automationRules.createdAt));
