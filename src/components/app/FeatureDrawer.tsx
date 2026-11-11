@@ -122,6 +122,79 @@ export function FeatureDrawer({
         { label: "Marks entered", value: String(marked.length), hint: "Records with marks and maximum marks" },
         { label: "Average score", value: marked.length ? `${Math.round(average)}%` : "—", hint: "Average across records with marks" },
       );
+    } else if (moduleId === "admissions") {
+      const stage = (value: string) => rows.filter((row) => String(row.payload?.stage ?? row.status).toLowerCase() === value).length;
+      metrics.push(
+        { label: "Applications", value: String(rows.length), hint: "Admission records in this workspace" },
+        { label: "Approved", value: String(stage("approved") + stage("admitted")), hint: "Applications marked approved or admitted" },
+        { label: "Awaiting action", value: String(rows.filter((row) => !["done", "approved", "admitted", "rejected"].includes(String(row.payload?.stage ?? row.status).toLowerCase())).length), hint: "Applications that may need follow-up" },
+      );
+    } else if (moduleId === "homework") {
+      const due = rows.filter((row) => row.dueDate || row.payload?.dueDate);
+      const completed = rows.filter((row) => row.status === "done" || String(row.payload?.submissionStatus ?? "").toLowerCase() === "submitted").length;
+      metrics.push(
+        { label: "Assignments", value: String(rows.length), hint: "Homework and assignment records" },
+        { label: "Completed", value: String(completed), hint: "Marked done or submitted" },
+        { label: "With deadlines", value: String(due.length), hint: "Records with a due date" },
+      );
+    } else if (moduleId === "timetable") {
+      const classes = new Set(rows.map((row) => String(row.payload?.class ?? "")).filter(Boolean));
+      const teachers = new Set(rows.map((row) => String(row.payload?.teacher ?? "")).filter(Boolean));
+      const periods = new Set(rows.map((row) => `${row.payload?.day ?? ""}-${row.payload?.period ?? ""}`).filter((value) => value !== "-"));
+      metrics.push(
+        { label: "Scheduled lessons", value: String(rows.length), hint: "Timetable entries recorded" },
+        { label: "Classes covered", value: String(classes.size), hint: "Distinct classes in the timetable" },
+        { label: "Teachers assigned", value: String(teachers.size), hint: "Distinct teachers with entries" },
+      );
+    } else if (moduleId === "hr") {
+      const departments = new Set(rows.map((row) => String(row.payload?.department ?? "")).filter(Boolean));
+      const active = rows.filter((row) => !["done", "flagged"].includes(row.status)).length;
+      metrics.push(
+        { label: "Staff profiles", value: String(rows.length), hint: "Employee records in this workspace" },
+        { label: "Departments", value: String(departments.size), hint: "Departments represented" },
+        { label: "Active records", value: String(active), hint: "Profiles not marked complete or flagged" },
+      );
+    } else if (moduleId === "leave") {
+      const pending = rows.filter((row) => !["done", "approved", "rejected"].includes(String(row.payload?.approval ?? row.status).toLowerCase())).length;
+      const days = rows.reduce((sum, row) => sum + (Number(row.payload?.days) || 0), 0);
+      metrics.push(
+        { label: "Leave requests", value: String(rows.length), hint: "Requests recorded" },
+        { label: "Awaiting review", value: String(pending), hint: "Requests not marked approved or rejected" },
+        { label: "Days requested", value: String(days), hint: "Sum of days entered on requests" },
+      );
+    } else if (moduleId === "library") {
+      const today = new Date().toISOString().slice(0, 10);
+      const loans = rows.filter((row) => row.payload?.memberId || row.payload?.memberName);
+      const overdue = loans.filter((row) => String(row.payload?.returnDate ?? "") && String(row.payload?.returnDate) < today && row.status !== "done");
+      metrics.push(
+        { label: "Catalogue / loan entries", value: String(rows.length), hint: "Books and circulation records" },
+        { label: "Borrowed items", value: String(loans.length), hint: "Entries with a borrower recorded" },
+        { label: "Past due", value: String(overdue.length), hint: "Borrowed entries past their return date" },
+      );
+    } else if (moduleId === "transport") {
+      const vehicles = new Set(rows.map((row) => String(row.payload?.vehicleNo ?? "")).filter(Boolean));
+      const routes = new Set(rows.map((row) => String(row.payload?.route ?? "")).filter(Boolean));
+      metrics.push(
+        { label: "Transport records", value: String(rows.length), hint: "Routes, stops and assignments" },
+        { label: "Routes", value: String(routes.size), hint: "Distinct route names" },
+        { label: "Vehicles", value: String(vehicles.size), hint: "Distinct vehicle registrations" },
+      );
+    } else if (moduleId === "hostel") {
+      const rooms = new Set(rows.map((row) => String(row.payload?.room ?? "")).filter(Boolean));
+      const occupants = rows.filter((row) => row.payload?.studentId || row.payload?.studentName).length;
+      metrics.push(
+        { label: "Hostel records", value: String(rows.length), hint: "Room and resident entries" },
+        { label: "Residents recorded", value: String(occupants), hint: "Entries linked to a student" },
+        { label: "Rooms represented", value: String(rooms.size), hint: "Distinct room numbers" },
+      );
+    } else if (moduleId === "payroll") {
+      const paid = rows.filter((row) => String(row.payload?.paymentStatus ?? "").toLowerCase() === "paid");
+      const net = rows.reduce((sum, row) => sum + (Number(row.payload?.netPay) || row.amount || 0), 0);
+      metrics.push(
+        { label: "Payroll entries", value: String(rows.length), hint: "Salary records in this workspace" },
+        { label: "Marked paid", value: String(paid.length), hint: "Entries with paid status" },
+        { label: "Net pay recorded", value: `₹${net.toLocaleString("en-IN")}`, hint: "Sum of net pay values or recorded amounts" },
+      );
     } else if (moduleId === "students") {
       const classes = new Set(rows.map((row) => String(row.payload?.class ?? "")).filter(Boolean));
       metrics.push(
