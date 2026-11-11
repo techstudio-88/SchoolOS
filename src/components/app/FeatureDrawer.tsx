@@ -494,12 +494,18 @@ export function FeatureDrawer({
             <button type="button" disabled={bulkBusy} onClick={() => void bulkDelete()} className="rounded-lg border border-rose-400/25 px-3 py-2 text-xs text-rose-200 hover:bg-rose-500/10 disabled:opacity-50">{bulkBusy ? "Working…" : "Delete selected"}</button>
             <button type="button" disabled={bulkBusy} onClick={() => setSelectedIds([])} className="rounded-lg px-2 py-2 text-xs text-slate-400 hover:text-white">Clear</button>
           </div>}
-          {(activeView === "overview" || activeView === "records") && <div className="flex flex-wrap gap-1.5">
-            {[{ id: "all", label: "All", color }, ...STATUSES].map((s) => (
-              <button key={s.id} onClick={() => setFilter(s.id)} className="rounded-full px-3 py-1 text-xs transition" style={{ background: filter === s.id ? `${s.color}33` : "rgba(255,255,255,0.05)", color: filter === s.id ? s.color : "#94a3b8", boxShadow: filter === s.id ? `0 0 14px ${s.color}44` : undefined }}>
-                {s.label}
-              </button>
-            ))}
+          {(activeView === "overview" || activeView === "records") && <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap gap-1.5">
+              {[{ id: "all", label: "All", color }, ...STATUSES].map((s) => (
+                <button key={s.id} onClick={() => setFilter(s.id)} className="rounded-full px-3 py-1 text-xs transition" style={{ background: filter === s.id ? `${s.color}33` : "rgba(255,255,255,0.05)", color: filter === s.id ? s.color : "#94a3b8", boxShadow: filter === s.id ? `0 0 14px ${s.color}44` : undefined }}>
+                  {s.label}
+                </button>
+              ))}
+            </div>
+            <label className="flex items-center gap-2 text-xs text-slate-500">
+              <input type="checkbox" aria-label="Select all visible records" checked={shown.length > 0 && shown.every((row) => selectedIds.includes(row.id))} onChange={(event) => setSelectedIds((current) => event.target.checked ? Array.from(new Set([...current, ...shown.map((row) => row.id)])) : current.filter((id) => !shown.some((row) => row.id === id)))} className="h-4 w-4 accent-violet-500" />
+              Select visible ({shown.length})
+            </label>
           </div>}
 
           <AnimatePresence>
