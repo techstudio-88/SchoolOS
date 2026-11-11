@@ -27,6 +27,16 @@ export const featureSettings = pgTable("feature_settings", {
   enabled: boolean("enabled").notNull().default(true),
 }, (t) => [primaryKey({ columns: [t.schoolId, t.featureKey] })]);
 
+export const automationRules = pgTable("automation_rules", {
+  id: serial("id").primaryKey(),
+  schoolId: integer("school_id").notNull(),
+  name: text("name").notNull(),
+  trigger: text("trigger").notNull(),
+  action: text("action").notNull().default("in_app_alert"),
+  enabled: boolean("enabled").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (t) => [index("automation_rules_school_enabled_idx").on(t.schoolId, t.enabled, t.createdAt)]);
+
 export const platformNotices = pgTable("platform_notices", {
   id: serial("id").primaryKey(), title: text("title").notNull(), body: text("body").notNull().default(""),
   createdAt: timestamp("created_at").notNull().defaultNow(),
