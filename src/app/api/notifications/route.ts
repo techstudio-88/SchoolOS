@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { and, desc, eq, inArray } from "drizzle-orm";
-import { db, records } from "@/db";
+import { db, automationRules, records } from "@/db";
 import { getSession } from "@/lib/session";
 import { MODULE_MAP, PANEL_MAP } from "@/lib/catalog";
 
@@ -12,21 +12,25 @@ export async function GET() {
   const modules = PANEL_MAP[session.role]?.modules ?? [];
   if (!modules.length) return NextResponse.json({ notifications: [] });
 
-  const rows = await db.select({
-    id: records.id,
-    title: records.title,
-    person: records.person,
-    amount: records.amount,
-    dueDate: records.dueDate,
-    status: records.status,
-    moduleId: records.moduleId,
-    featureKey: records.featureKey,
-    payload: records.payload,
-    createdAt: records.createdAt,
-  }).from(records)
-    .where(and(eq(records.schoolId, session.schoolId), inArray(records.moduleId, modules)))
-    .orderBy(desc(records.createdAt))
-    .limit(400);
+  const [rows, rules] = await Promise.all([
+    db.select({
+      id: records.id,
+      title: records.title,
+      person: records.person,
+      amount: records.amount,
+      dueDate: records.dueDate,
+      status: records.status,
+      moduleId: records.moduleId,
+      featureKey: records.featureKey,
+      payload: records.payload,
+      createdAt: records.createdAt,
+    }).from(records)
+      .where(and(eq(records.schoolId, session.schoolId), inArray(records.moduleId, modules)))
+      .orderBy(desc(records.createdAt))
+      .limit(400),
+    db.select().from(automationRules)
+      .where(and(eq(automationRules.schoolId, session.schoolId), eq(automationRules.enabled, true))),
+  ]);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -115,7 +119,42 @@ export async function GET() {
     }
 
     return items;
-  }).slice(0, 40);
+  });
 
-  return NextResponse.json({ notifications });
+  const automationNotifications = rules.flatMap((rule) => rows.flatMap((row) => {
+    const payload = row.payload ?? {};
+    const href = `/app/${session.role}/${row.moduleId}/${encodeURIComponent(row.featureKey)}`;
+    const moduleTitle = MODULE_MAP[row.moduleId]?.title ?? row.moduleId;
+    let matches = false;
+    let body = "";
+    if (rule.trigger === "attendance_absent" && row.moduleId === "attendance") {
+      const attendanceDate = String(payload.date ?? row.createdAt.toISOString().slice(0, 10));
+      matches = String(payload.attendance ?? "").toLowerCase() === "absent" && attendanceDate === todayKey;
+      body = `Attendance marked absent today · ${attendanceDate}`;
+    } else if (rule.trigger === "fee_due" && row.moduleId === "fees") {
+      const due = String(row.dueDate || payload.dueDate || "");
+      matches = row.status !== "done" && !["paid", "done", "completed"].includes(String(payload.paymentStatus ?? "").toLowerCase()) && row.amount > 0 && Boolean(due) && due <= soonKey;
+      body = `₹${row.amount.toLocaleString("en-IN")} · ${due ? `Due ${due}` : "Payment pending"}`;
+    } else if (rule.trigger === "event_soon" && row.moduleId === "events") {
+      const eventDate = String(payload.eventDate ?? row.dueDate ?? "").slice(0, 10);
+      matches = Boolean(eventDate) && eventDate >= todayKey && eventDate <= soonKey;
+      body = `Scheduled for ${eventDate}`;
+    } else if (rule.trigger === "leave_pending" && row.moduleId === "leave") {
+      matches = !["done", "approved", "rejected"].includes(String(payload.approval ?? row.status).toLowerCase());
+      body = String(payload.employeeName ?? row.person ?? "Staff request");
+    }
+    if (!matches) return [];
+    return [{
+      id: `automation-${rule.id}-${row.id}`,
+      title: rule.name,
+      body: `${row.title} · ${body}`,
+      kind: "automation",
+      moduleTitle,
+      href,
+    }];
+  }));
+
+  const combined = [...notifications, ...automationNotifications];
+  const deduplicated = Array.from(new Map(combined.map((notice) => [notice.id, notice])).values()).slice(0, 50);
+  return NextResponse.json({ notifications: deduplicated });
 }
