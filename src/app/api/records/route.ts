@@ -5,6 +5,7 @@ import { FEATURE_MAP, SAMPLE_PEOPLE } from "@/lib/catalog";
 import { getSession } from "@/lib/session";
 import { PANEL_MAP } from "@/lib/catalog";
 import { findTimetableConflict } from "@/lib/timetable";
+import { getWorkflowFields } from "@/lib/workflow-fields";
 
 export const dynamic = "force-dynamic";
 
@@ -62,6 +63,14 @@ export async function POST(req: Request) {
   const title = String(b.title ?? "").trim().slice(0, 160);
   if (!title) return NextResponse.json({ error: "title required" }, { status: 400 });
   const payload = (b.payload && typeof b.payload === "object" && !Array.isArray(b.payload)) ? b.payload as Record<string, string | number | boolean | null> : {};
+  const missing = getWorkflowFields(feature.moduleId).find((field) => field.required && !String(payload[field.key] ?? "").trim());
+  if (missing) return NextResponse.json({ error: `${missing.label} is required.`, field: missing.key }, { status: 400 });
+  const invalidValue = Object.entries(payload).find(([key, value]) =>
+    key.length > 80 || (value !== null && !["string", "number", "boolean"].includes(typeof value)) ||
+    (typeof value === "string" && value.length > 4000) ||
+    (typeof value === "number" && !Number.isFinite(value))
+  );
+  if (invalidValue) return NextResponse.json({ error: "One of the form fields has an invalid or oversized value.", field: invalidValue[0] }, { status: 400 });
   if (feature.moduleId === "timetable") {
     const existing = await db.select({ id: records.id, payload: records.payload }).from(records)
       .where(and(eq(records.schoolId, session.schoolId), eq(records.moduleId, "timetable")));
