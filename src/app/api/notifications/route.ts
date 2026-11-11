@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import { db, records } from "@/db";
 import { getSession } from "@/lib/session";
-import { FEATURE_MAP, MODULE_MAP, PANEL_MAP } from "@/lib/catalog";
+import { MODULE_MAP, PANEL_MAP } from "@/lib/catalog";
 
 export const dynamic = "force-dynamic";
 
