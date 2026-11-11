@@ -50,6 +50,7 @@ export function FeatureDrawer({
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [filter, setFilter] = useState("all");
+  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "due" | "amount" | "title">("newest");
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [expandedIds, setExpandedIds] = useState<number[]>([]);
   const [bulkBusy, setBulkBusy] = useState(false);
@@ -209,7 +210,13 @@ export function FeatureDrawer({
     (r) =>
       (filter === "all" || r.status === filter) &&
       (!q || `${r.title} ${r.person} ${r.notes}`.toLowerCase().includes(q.toLowerCase())),
-  );
+  ).sort((a, b) => {
+    if (sortBy === "oldest") return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+    if (sortBy === "due") return (a.dueDate || "9999-12-31").localeCompare(b.dueDate || "9999-12-31");
+    if (sortBy === "amount") return b.amount - a.amount;
+    if (sortBy === "title") return a.title.localeCompare(b.title);
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -416,7 +423,14 @@ export function FeatureDrawer({
         <div className="flex-1 space-y-5 overflow-y-auto bg-[#080b16] p-5 md:p-8">
           {err && !showForm && <div role="alert" className="rounded-xl border border-rose-400/25 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">{err}</div>}
           {activeView !== "insights" && <div className="flex flex-col gap-3 rounded-2xl border border-white/[0.08] bg-[#0d1222] p-4 sm:flex-row sm:items-center"><div className="min-w-0 flex-1"><div className="text-sm font-semibold text-white">{activeView === "overview" ? "Your activity" : "All records"}</div><p className="mt-1 text-xs text-slate-500">Search, filter and manage work in this workspace.</p></div><div className="flex items-center gap-2">
-            <input className="input !min-w-0 !py-2" placeholder="Search records…" value={q} onChange={(e) => setQ(e.target.value)} />
+            <input className="input !min-w-0 !py-2" placeholder="Search records…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Search records" />
+            <select aria-label="Sort records" className="input !w-auto !min-w-[132px] !py-2 text-xs" value={sortBy} onChange={(e) => setSortBy(e.target.value as typeof sortBy)}>
+              <option value="newest">Newest first</option>
+              <option value="oldest">Oldest first</option>
+              <option value="due">Due date</option>
+              <option value="amount">Highest amount</option>
+              <option value="title">Title A–Z</option>
+            </select>
             <button
               onClick={() => { setShowForm((v) => !v); setEditing(null); setForm(EMPTY); setPayload({}); }}
               className="flex shrink-0 items-center gap-1.5 rounded-xl px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110"
